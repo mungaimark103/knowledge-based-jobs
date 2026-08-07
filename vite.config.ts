@@ -27,8 +27,9 @@ export default defineConfig({
                 },
             },
         }),
-        !process.env.VERCEL && wayfinder({
+        wayfinder({
             formVariants: true,
+            command: process.env.VERCEL ? 'echo skipping' : undefined,
         }),
-    ].filter(Boolean),
+    ],
 });
