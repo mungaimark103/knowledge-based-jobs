@@ -27,8 +27,8 @@ export default defineConfig({
                 },
             },
         }),
-        wayfinder({
+        !process.env.VERCEL && wayfinder({
             formVariants: true,
         }),
-    ],
+    ].filter(Boolean),
 });
