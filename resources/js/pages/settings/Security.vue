@@ -6,7 +6,7 @@ import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/security';
+import { edit } from '@/routes/security/index';
 
 type Props = {
     passwordRules: string;
