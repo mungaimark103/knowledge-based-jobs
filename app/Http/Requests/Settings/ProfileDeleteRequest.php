@@ -17,6 +17,13 @@ class ProfileDeleteRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = $this->user();
+
+        // Google OAuth users do not have a local password to verify
+        if ($user && ! empty($user->google_id)) {
+            return [];
+        }
+
         return [
             'password' => $this->currentPasswordRules(),
         ];

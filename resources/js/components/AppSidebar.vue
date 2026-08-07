@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
+import { usePage } from '@inertiajs/vue3';
+import { Sparkles, Building2, LayoutGrid, ShieldCheck } from '@lucide/vue';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -17,6 +18,9 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
+const page = usePage();
+const user = computed(() => page.props.auth?.user as any);
+
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
@@ -25,18 +29,30 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
+const footerNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+        {
+            title: 'Opportunities',
+            href: '/opportunities',
+            icon: Sparkles,
+        },
+        {
+            title: 'Employer Portal',
+            href: '/employer/portal-switch',
+            icon: Building2,
+        },
+    ];
+
+    if (user.value?.role === 'agency_admin') {
+        items.push({
+            title: 'Agency Admin',
+            href: '/admin/dashboard',
+            icon: ShieldCheck,
+        });
+    }
+
+    return items;
+});
 </script>
 
 <template>

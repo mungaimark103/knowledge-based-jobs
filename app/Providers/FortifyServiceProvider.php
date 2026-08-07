@@ -11,6 +11,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -21,7 +23,39 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LoginResponseContract::class, function () {
+            return new class implements LoginResponseContract {
+                public function toResponse($request)
+                {
+                    $user = $request->user();
+                    if ($user && $user->role === 'agency_admin') {
+                        $request->session()->forget('url.intended');
+                        return redirect()->route('admin.dashboard');
+                    }
+                    if ($user && $user->role === 'employer') {
+                        $request->session()->forget('url.intended');
+                        return redirect()->route('employer.dashboard');
+                    }
+
+                    return redirect()->intended(config('fortify.home'));
+                }
+            };
+        });
+
+        $this->app->singleton(RegisterResponseContract::class, function () {
+            return new class implements RegisterResponseContract {
+                public function toResponse($request)
+                {
+                    $user = $request->user();
+                    if ($user && $user->role === 'employer') {
+                        $request->session()->forget('url.intended');
+                        return redirect()->route('employer.dashboard');
+                    }
+
+                    return redirect()->route('dashboard');
+                }
+            };
+        });
     }
 
     /**
@@ -66,7 +100,6 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::registerView(fn () => Inertia::render('auth/Register', [
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
         ]));
-
     }
 
     /**
@@ -74,12 +107,10 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureRateLimiting(): void
     {
-
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
         });
-
     }
 }

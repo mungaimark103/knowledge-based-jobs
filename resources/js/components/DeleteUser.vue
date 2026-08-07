@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
-import { useTemplateRef } from 'vue';
+import { Form, usePage } from '@inertiajs/vue3';
+import { computed, useTemplateRef } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
+const page = usePage();
+const user = computed(() => page.props.auth?.user as any);
 const passwordInput = useTemplateRef('passwordInput');
 </script>
 
@@ -34,7 +36,7 @@ const passwordInput = useTemplateRef('passwordInput');
             <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
                 <p class="font-medium">Warning</p>
                 <p class="text-sm">
-                    Please proceed with caution, this cannot be undone.
+                    Please proceed with caution, this action cannot be undone.
                 </p>
             </div>
             <Dialog>
@@ -59,16 +61,18 @@ const passwordInput = useTemplateRef('passwordInput');
                                 >Are you sure you want to delete your
                                 account?</DialogTitle
                             >
-                            <DialogDescription>
-                                Once your account is deleted, all of its
-                                resources and data will also be permanently
-                                deleted. Please enter your password to confirm
-                                you would like to permanently delete your
-                                account.
+                            <DialogDescription v-if="user?.google_id">
+                                🔒 <strong>Google Single Sign-On Account:</strong> You are logged in via Google OAuth (<code>{{ user?.email }}</code>). No password is required. Click <strong>Delete account</strong> below to confirm permanent deletion of your profile, resume files, and applications.
+                            </DialogDescription>
+                            <DialogDescription v-else-if="user?.role === 'employer'">
+                                ⚠️ <strong>Employer Account Deletion:</strong> Deleting this employer account will permanently delete your organization profile and all posted job vacancies. Applicants will see existing applications marked as <em>"Job No Longer Available"</em>. Please enter your password to confirm.
+                            </DialogDescription>
+                            <DialogDescription v-else>
+                                Once your account is deleted, all of your profile details, resume files, and applications will be permanently removed. Please enter your password to confirm you would like to permanently delete your account.
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div class="grid gap-2">
+                        <div v-if="!user?.google_id" class="grid gap-2">
                             <Label for="password" class="sr-only"
                                 >Password</Label
                             >

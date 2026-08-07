@@ -24,7 +24,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'google_id', 'password', 'role', 'agency_sub_role'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -42,5 +42,45 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function candidateProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(CandidateProfile::class);
+    }
+
+    public function organization(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Organization::class);
+    }
+
+    public function isCandidate(): bool
+    {
+        return $this->role === 'candidate';
+    }
+
+    public function isEmployer(): bool
+    {
+        return $this->role === 'employer';
+    }
+
+    public function isAgencyAdmin(): bool
+    {
+        return $this->role === 'agency_admin';
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'agency_admin' && ($this->agency_sub_role === 'super_admin' || empty($this->agency_sub_role));
+    }
+
+    public function isVerificationOfficer(): bool
+    {
+        return $this->role === 'agency_admin' && $this->agency_sub_role === 'verification_officer';
+    }
+
+    public function isComplianceAuditor(): bool
+    {
+        return $this->role === 'agency_admin' && $this->agency_sub_role === 'compliance_auditor';
     }
 }
