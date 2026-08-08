@@ -123,14 +123,12 @@ const rightNavItems: NavItem[] = [
                                         {{ item.title }}
                                     </Link>
                                 </nav>
-                                <div class="flex flex-col space-y-4">
-                                    <a
+                                <div class="flex flex-col space-y-3 pt-3 border-t border-sidebar-border">
+                                    <Link
                                         v-for="item in rightNavItems"
                                         :key="item.title"
-                                        :href="toUrl(item.href)"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="flex items-center space-x-2 text-sm font-medium"
+                                        :href="item.href"
+                                        class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
                                     >
                                         <component
                                             v-if="item.icon"
@@ -138,7 +136,7 @@ const rightNavItems: NavItem[] = [
                                             class="h-5 w-5"
                                         />
                                         <span>{{ item.title }}</span>
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
                         </SheetContent>
