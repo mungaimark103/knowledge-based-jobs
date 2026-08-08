@@ -28,12 +28,24 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, Request $request) {
+            return null;
+        });
+
         $exceptions->render(function (\Throwable $e, Request $request) {
-            return response()->json([
-                'error' => get_class($e),
-                'message' => $e->getMessage(),
-                'file' => $e->getFile() . ':' . $e->getLine(),
-                'trace' => explode("\n", $e->getTraceAsString()),
-            ], 500);
+            if ($request->header('X-Inertia')) {
+                return null;
+            }
+
+            if (getenv('APP_DEBUG') === 'true') {
+                return response()->json([
+                    'error' => get_class($e),
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile() . ':' . $e->getLine(),
+                    'trace' => explode("\n", $e->getTraceAsString()),
+                ], 500);
+            }
+
+            return null;
         });
     })->create();
