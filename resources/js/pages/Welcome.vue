@@ -147,7 +147,7 @@ const mobileMenuOpen = ref(false);
             </h1>
 
             <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                A deterministic, rule-driven talent platform bridging international development, multilateral organizations, and public sector hiring. Replaces black-box keywords with transparent expert inference.
+                A deterministic, rule-driven talent platform connecting global professionals with verified opportunities across leading enterprises, NGOs, and public sector institutions. Replaces opaque ATS filters with transparent expert inference.
             </p>
 
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 pt-4 max-w-md mx-auto sm:max-w-none">
@@ -175,12 +175,12 @@ const mobileMenuOpen = ref(false);
                 </div>
                 <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">For Job Seekers & Professionals</h3>
                 <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Instantly evaluate your qualifications against formal UN grade criteria (P-1 to P-5, GS). Get transparent match score breakdowns, hard eligibility warnings, and actionable gap mitigation steps before submitting applications.
+                    Instantly evaluate your qualifications against standardized job requirements and experience benchmarks. Receive transparent match score breakdowns, hard eligibility checks, and actionable gap analysis before submitting applications.
                 </p>
                 <ul class="space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 pt-2">
                     <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Personalized Recommended Jobs feed</li>
-                    <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Transparent AHP Scorecard Breakdown</li>
-                    <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Inbuilt 1-Click Job Application</li>
+                    <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Transparent Suitability Scorecard Breakdown</li>
+                    <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Streamlined Direct Job Application</li>
                 </ul>
             </div>
 
@@ -191,12 +191,12 @@ const mobileMenuOpen = ref(false);
                 </div>
                 <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">For Hiring Organizations & Recruiters</h3>
                 <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Automate manual screening and save 35+ hours per vacancy. When the application period closes, our KBS Inference Engine automatically sequences candidate pipelines from 100% suitability down to lowest.
+                    Automate manual screening and save 35+ hours per vacancy. When applications close, our KBS Inference Engine automatically ranks and sequences candidate pipelines from highest suitability to lowest.
                 </p>
                 <ul class="space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 pt-2">
-                    <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Candidate Sequencing from highest to lowest score</li>
+                    <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Candidate Pipeline Sequencing from highest to lowest score</li>
                     <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Reusable KBS Rule Templates & Job-Specific Criteria</li>
-                    <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Estimated Screening Hours Saved Analytics</li>
+                    <li class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0" /> Real-Time Screening Hours Saved & Recruitment Analytics</li>
                 </ul>
             </div>
         </section>
@@ -212,19 +212,19 @@ const mobileMenuOpen = ref(false);
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl space-y-3 text-center">
                     <div class="h-10 w-10 mx-auto rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">1</div>
                     <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">Knowledge Base Storage</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Criteria weights (Skill, Experience, Reliability) and IF-THEN rules stored as editable database records.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Criteria weights (Skill, Experience, Reliability) and IF-THEN evaluation rules stored as flexible, configurable database logic.</p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl space-y-3 text-center">
                     <div class="h-10 w-10 mx-auto rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">2</div>
                     <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">Inference Engine Deduction</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Evaluates candidate credentials against job facts deterministically without black-box machine learning.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Evaluates candidate credentials against verified job requirements deterministically, avoiding black-box machine learning bias.</p>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl space-y-3 text-center">
                     <div class="h-10 w-10 mx-auto rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">3</div>
                     <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">Explanation Facility</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Outputs transparent human-readable explanations explaining exactly why each score was awarded.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Generates clear, human-readable explanations detailing exactly how every suitability score and recommendation was calculated.</p>
                 </div>
             </div>
         </section>
