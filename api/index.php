@@ -32,6 +32,10 @@ foreach ($cacheVars as $key => $val) {
     $_SERVER[$key] = $val;
 }
 
+$_SERVER['HTTPS'] = 'on';
+$_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+$_SERVER['SERVER_PORT'] = '443';
+
 define('LARAVEL_START', microtime(true));
 
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
