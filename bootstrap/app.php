@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withProviders([
+        \Illuminate\Filesystem\FilesystemServiceProvider::class,
         \Illuminate\View\ViewServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
@@ -27,14 +28,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->respond(function ($response, \Throwable $e, Request $request) {
-            if (!empty($_ENV['VERCEL']) || !empty($_SERVER['VERCEL'])) {
-                return response()->json([
-                    'error' => get_class($e),
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile() . ':' . $e->getLine(),
-                ], 500);
-            }
-            return $response;
+        $exceptions->render(function (\Throwable $e, Request $request) {
+            return response()->json([
+                'error' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+                'trace' => explode("\n", $e->getTraceAsString()),
+            ], 500);
         });
     })->create();

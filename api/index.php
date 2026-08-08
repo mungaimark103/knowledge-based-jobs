@@ -33,8 +33,12 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 
 $app->useStoragePath('/tmp');
 
-// Always pre-register ViewServiceProvider so 'view' is bound for error handlers
-$app->register(\Illuminate\View\ViewServiceProvider::class);
+if (!$app->bound('files')) {
+    $app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
+}
+if (!$app->bound('view')) {
+    $app->register(\Illuminate\View\ViewServiceProvider::class);
+}
 
 try {
     $app->handleRequest(\Illuminate\Http\Request::capture());
