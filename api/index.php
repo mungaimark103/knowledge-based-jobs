@@ -12,9 +12,13 @@ $tmpDirs = [
 
 foreach ($tmpDirs as $dir) {
     if (!is_dir($dir)) {
-        @mkdir($dir, 0755, true);
+        @mkdir($dir, 0777, true);
     }
 }
+
+putenv('VIEW_COMPILED_PATH=/tmp/framework/views');
+$_ENV['VIEW_COMPILED_PATH'] = '/tmp/framework/views';
+$_SERVER['VIEW_COMPILED_PATH'] = '/tmp/framework/views';
 
 define('LARAVEL_START', microtime(true));
 
@@ -28,11 +32,6 @@ require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
 $app->useStoragePath('/tmp');
-
-// Register ViewServiceProvider explicitly to prevent "Target class [view] does not exist" on early errors
-if (!$app->bound('view')) {
-    $app->register(\Illuminate\View\ViewServiceProvider::class);
-}
 
 try {
     $app->handleRequest(\Illuminate\Http\Request::capture());
