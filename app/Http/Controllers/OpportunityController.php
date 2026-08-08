@@ -197,12 +197,19 @@ class OpportunityController extends Controller
         );
 
         // Feed submitted application modules back into Candidate Profile Credentials database
+        $profile = CandidateProfile::firstOrCreate(['user_id' => $user->id]);
+
+        $submittedEduLevel = $profile->education_level;
+        if (is_array($eduData) && isset($eduData[0]['degree']) && ! empty($eduData[0]['degree'])) {
+            $submittedEduLevel = $eduData[0]['degree'];
+        }
+
         // Compute total years of experience accurately from submitted work positions month & year dates
         $workList = is_array($workData) && isset($workData[0]) ? $workData : [$workData];
         $computedYears = $this->calculateExperienceYears($workList);
 
         $profile->update([
-            'education_level' => $submittedEduLevel,
+            'education_level' => $submittedEduLevel ?: "Bachelor's Degree",
             'years_experience' => max($profile->years_experience ?? 0, $computedYears),
             'field_experience_months' => max(($profile->years_experience ?? 0) * 12, $computedYears * 12),
             'education_history' => is_array($eduData) && isset($eduData[0]) ? $eduData : [$eduData],
