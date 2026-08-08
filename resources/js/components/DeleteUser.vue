@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Form, usePage } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { computed, useTemplateRef } from 'vue';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController.ts';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
@@ -21,6 +20,18 @@ import { Label } from '@/components/ui/label';
 const page = usePage();
 const user = computed(() => page.props.auth?.user as any);
 const passwordInput = useTemplateRef('passwordInput');
+
+const form = useForm({
+    password: '',
+});
+
+function submitDeleteAccount() {
+    form.delete('/settings/profile', {
+        preserveScroll: true,
+        onError: () => passwordInput.value?.focus(),
+        onSuccess: () => form.reset(),
+    });
+}
 </script>
 
 <template>
@@ -46,16 +57,7 @@ const passwordInput = useTemplateRef('passwordInput');
                     >
                 </DialogTrigger>
                 <DialogContent>
-                    <Form
-                        v-bind="ProfileController.destroy.form()"
-                        reset-on-success
-                        @error="() => passwordInput?.focus()"
-                        :options="{
-                            preserveScroll: true,
-                        }"
-                        class="space-y-6"
-                        v-slot="{ errors, processing, reset, clearErrors }"
-                    >
+                    <form @submit.prevent="submitDeleteAccount" class="space-y-6">
                         <DialogHeader class="space-y-3">
                             <DialogTitle
                                 >Are you sure you want to delete your
@@ -79,22 +81,19 @@ const passwordInput = useTemplateRef('passwordInput');
                             <PasswordInput
                                 id="password"
                                 name="password"
+                                v-model="form.password"
                                 ref="passwordInput"
                                 placeholder="Password"
                             />
-                            <InputError :message="errors.password" />
+                            <InputError :message="form.errors.password" />
                         </div>
 
                         <DialogFooter class="gap-2">
                             <DialogClose as-child>
                                 <Button
                                     variant="secondary"
-                                    @click="
-                                        () => {
-                                            clearErrors();
-                                            reset();
-                                        }
-                                    "
+                                    type="button"
+                                    @click="form.reset()"
                                 >
                                     Cancel
                                 </Button>
@@ -103,13 +102,13 @@ const passwordInput = useTemplateRef('passwordInput');
                             <Button
                                 type="submit"
                                 variant="destructive"
-                                :disabled="processing"
+                                :disabled="form.processing"
                                 data-test="confirm-delete-user-button"
                             >
                                 Delete account
                             </Button>
                         </DialogFooter>
-                    </Form>
+                    </form>
                 </DialogContent>
             </Dialog>
         </div>

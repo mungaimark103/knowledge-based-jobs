@@ -1,28 +1,37 @@
 <script setup lang="ts">
-import { Form, Head, usePage } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController.ts';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/profile/index';
 
 defineOptions({
     layout: {
         breadcrumbs: [
             {
                 title: 'Profile settings',
-                href: edit(),
+                href: '/settings/profile',
             },
         ],
     },
 });
 
 const page = usePage();
-const user = computed(() => page.props.auth.user);
+const user = computed(() => page.props.auth.user as any);
+
+const form = useForm({
+    name: user.value?.name || '',
+    email: user.value?.email || '',
+});
+
+function submitProfile() {
+    form.patch('/settings/profile', {
+        preserveScroll: true,
+    });
+}
 </script>
 
 <template>
@@ -37,23 +46,18 @@ const user = computed(() => page.props.auth.user);
             description="Update your name and email address"
         />
 
-        <Form
-            v-bind="ProfileController.update.form()"
-            class="space-y-6"
-            v-slot="{ errors, processing }"
-        >
+        <form @submit.prevent="submitProfile" class="space-y-6">
             <div class="grid gap-2">
                 <Label for="name">Name</Label>
                 <Input
                     id="name"
                     class="mt-1 block w-full"
-                    name="name"
-                    :default-value="user.name"
+                    v-model="form.name"
                     required
                     autocomplete="name"
                     placeholder="Full name"
                 />
-                <InputError class="mt-2" :message="errors.name" />
+                <InputError class="mt-2" :message="form.errors.name" />
             </div>
 
             <div class="grid gap-2">
@@ -62,21 +66,20 @@ const user = computed(() => page.props.auth.user);
                     id="email"
                     type="email"
                     class="mt-1 block w-full"
-                    name="email"
-                    :default-value="user.email"
+                    v-model="form.email"
                     required
                     autocomplete="username"
                     placeholder="Email address"
                 />
-                <InputError class="mt-2" :message="errors.email" />
+                <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
             <div class="flex items-center gap-4">
-                <Button :disabled="processing" data-test="update-profile-button"
-                    >Save</Button
-                >
+                <Button :disabled="form.processing" data-test="update-profile-button">
+                    Save
+                </Button>
             </div>
-        </Form>
+        </form>
     </div>
 
     <DeleteUser />

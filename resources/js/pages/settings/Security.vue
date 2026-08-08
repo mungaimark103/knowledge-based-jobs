@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
-import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController.ts';
+import { Head, useForm } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/security/index';
 
 type Props = {
     passwordRules: string;
@@ -19,11 +17,25 @@ defineOptions({
         breadcrumbs: [
             {
                 title: 'Security settings',
-                href: edit(),
+                href: '/settings/security',
             },
         ],
     },
 });
+
+const form = useForm({
+    current_password: '',
+    password: '',
+    password_confirmation: '',
+});
+
+function submitPasswordUpdate() {
+    form.put('/settings/security', {
+        preserveScroll: true,
+        onSuccess: () => form.reset(),
+        onError: () => form.reset('password', 'password_confirmation', 'current_password'),
+    });
+}
 </script>
 
 <template>
@@ -38,30 +50,18 @@ defineOptions({
             description="Ensure your account is using a long, random password to stay secure"
         />
 
-        <Form
-            v-bind="SecurityController.update.form()"
-            :options="{
-                preserveScroll: true,
-            }"
-            reset-on-success
-            :reset-on-error="[
-                'password',
-                'password_confirmation',
-                'current_password',
-            ]"
-            class="space-y-6"
-            v-slot="{ errors, processing }"
-        >
+        <form @submit.prevent="submitPasswordUpdate" class="space-y-6">
             <div class="grid gap-2">
                 <Label for="current_password">Current password</Label>
                 <PasswordInput
                     id="current_password"
                     name="current_password"
+                    v-model="form.current_password"
                     class="mt-1 block w-full"
                     autocomplete="current-password"
                     placeholder="Current password"
                 />
-                <InputError :message="errors.current_password" />
+                <InputError :message="form.errors.current_password" />
             </div>
 
             <div class="grid gap-2">
@@ -69,12 +69,13 @@ defineOptions({
                 <PasswordInput
                     id="password"
                     name="password"
+                    v-model="form.password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
                     placeholder="New password"
                     :passwordrules="props.passwordRules"
                 />
-                <InputError :message="errors.password" />
+                <InputError :message="form.errors.password" />
             </div>
 
             <div class="grid gap-2">
@@ -82,22 +83,23 @@ defineOptions({
                 <PasswordInput
                     id="password_confirmation"
                     name="password_confirmation"
+                    v-model="form.password_confirmation"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
                     placeholder="Confirm password"
                     :passwordrules="props.passwordRules"
                 />
-                <InputError :message="errors.password_confirmation" />
+                <InputError :message="form.errors.password_confirmation" />
             </div>
 
             <div class="flex items-center gap-4">
                 <Button
-                    :disabled="processing"
+                    :disabled="form.processing"
                     data-test="update-password-button"
                 >
                     Save
                 </Button>
             </div>
-        </Form>
+        </form>
     </div>
 </template>

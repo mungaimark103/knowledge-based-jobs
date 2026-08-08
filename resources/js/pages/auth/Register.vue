@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login } from '@/routes';
 
 defineProps<{
     passwordRules: string;
@@ -206,7 +205,7 @@ function submit() {
         <div class="text-center text-sm text-muted-foreground">
             Already have an account?
             <TextLink
-                :href="login()"
+                href="/login"
                 class="underline underline-offset-4"
             >Log in</TextLink>
         </div>
