@@ -24,7 +24,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
-        );
+        $exceptions->respond(function ($response, \Throwable $e, Request $request) {
+            if (!empty($_ENV['VERCEL']) || !empty($_SERVER['VERCEL'])) {
+                return response()->json([
+                    'error' => get_class($e),
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile() . ':' . $e->getLine(),
+                ], 500);
+            }
+            return $response;
+        });
     })->create();
