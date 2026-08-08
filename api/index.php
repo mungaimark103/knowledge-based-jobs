@@ -1,6 +1,7 @@
 <?php
 
 $tmpDirs = [
+    '/tmp/bootstrap/cache',
     '/tmp/views',
     '/tmp/sessions',
     '/tmp/cache',
@@ -16,9 +17,20 @@ foreach ($tmpDirs as $dir) {
     }
 }
 
-putenv('VIEW_COMPILED_PATH=/tmp/framework/views');
-$_ENV['VIEW_COMPILED_PATH'] = '/tmp/framework/views';
-$_SERVER['VIEW_COMPILED_PATH'] = '/tmp/framework/views';
+$cacheVars = [
+    'APP_SERVICES_CACHE' => '/tmp/bootstrap/cache/services.php',
+    'APP_PACKAGES_CACHE' => '/tmp/bootstrap/cache/packages.php',
+    'APP_CONFIG_CACHE'   => '/tmp/bootstrap/cache/config.php',
+    'APP_ROUTES_CACHE'   => '/tmp/bootstrap/cache/routes.php',
+    'APP_EVENTS_CACHE'   => '/tmp/bootstrap/cache/events.php',
+    'VIEW_COMPILED_PATH' => '/tmp/framework/views',
+];
+
+foreach ($cacheVars as $key => $val) {
+    putenv("{$key}={$val}");
+    $_ENV[$key] = $val;
+    $_SERVER[$key] = $val;
+}
 
 define('LARAVEL_START', microtime(true));
 
