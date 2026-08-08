@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onErrorCaptured } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Search, ShieldCheck, Sparkles, MapPin, Award, CheckCircle2, AlertTriangle, XCircle, ArrowRight, UserCheck } from '@lucide/vue';
+import { Search, ShieldCheck, Sparkles, MapPin, Award, CheckCircle2, AlertTriangle, XCircle, ArrowRight, UserCheck, Menu, X } from '@lucide/vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+
+const mobileMenuOpen = ref(false);
 
 interface Opportunity {
     id: number;
@@ -111,50 +113,120 @@ const getStatusBadge = (status?: string) => {
 
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
         <!-- Public Navigation Header -->
-        <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3">
-                <div class="h-10 w-10 rounded-xl bg-[#00b2e3] text-white flex items-center justify-center shadow-md shadow-[#00b2e3]/20 font-bold">
-                    <ShieldCheck class="w-6 h-6" />
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-slate-900 dark:text-slate-100">
-                        Impact Talent KBS
-                    </h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Knowledge-Based Career & Talent Platform</p>
+        <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-3.5 shadow-sm">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <Link href="/" class="flex items-center space-x-3 shrink-0">
+                    <div class="h-10 w-10 rounded-xl bg-[#00b2e3] text-white flex items-center justify-center shadow-md shadow-[#00b2e3]/20 font-bold shrink-0">
+                        <ShieldCheck class="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                            Impact Talent KBS
+                        </h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Knowledge-Based Career & Talent Platform</p>
+                    </div>
+                </Link>
+
+                <nav class="hidden md:flex items-center space-x-6">
+                    <Link href="/opportunities" class="text-xs font-semibold text-[#00b2e3] flex items-center gap-1.5">
+                        <Sparkles class="w-4 h-4" /> Directory
+                    </Link>
+                    <a href="/employer/portal-switch" class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition">
+                        Employer Portal
+                    </a>
+
+                    <template v-if="candidate">
+                        <Link
+                            href="/dashboard"
+                            class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition"
+                        >
+                            My Candidate Portal
+                        </Link>
+                    </template>
+                    <template v-else>
+                        <Link
+                            href="/login"
+                            class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition"
+                        >
+                            Log in
+                        </Link>
+                        <Link
+                            href="/register"
+                            class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition"
+                        >
+                            Register Account
+                        </Link>
+                    </template>
+                </nav>
+
+                <!-- Mobile Hamburger Button -->
+                <div class="flex items-center md:hidden">
+                    <button
+                        @click="mobileMenuOpen = !mobileMenuOpen"
+                        type="button"
+                        aria-label="Toggle navigation menu"
+                        class="p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none transition"
+                    >
+                        <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
+                        <X v-else class="w-6 h-6" />
+                    </button>
                 </div>
             </div>
 
-            <nav class="flex items-center space-x-5">
-                <Link href="/opportunities" class="text-xs font-semibold text-[#00b2e3] flex items-center gap-1.5">
-                    <Sparkles class="w-4 h-4" /> Directory
-                </Link>
-                <a href="/employer/portal-switch" class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
-                    Employer Portal
-                </a>
+            <!-- Mobile Drawer Menu -->
+            <transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition duration-150 ease-in"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 -translate-y-2"
+            >
+                <div v-if="mobileMenuOpen" class="md:hidden mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                    <Link
+                        href="/opportunities"
+                        @click="mobileMenuOpen = false"
+                        class="block px-3 py-2.5 rounded-xl text-sm font-semibold text-[#00b2e3] bg-[#00b2e3]/10 transition"
+                    >
+                        Directory
+                    </Link>
+                    <a
+                        href="/employer/portal-switch"
+                        @click="mobileMenuOpen = false"
+                        class="block px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    >
+                        Employer Portal
+                    </a>
 
-                <template v-if="candidate">
-                    <Link
-                        href="/dashboard"
-                        class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition"
-                    >
-                        My Candidate Portal
-                    </Link>
-                </template>
-                <template v-else>
-                    <Link
-                        href="/login"
-                        class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                    >
-                        Log in
-                    </Link>
-                    <Link
-                        href="/register"
-                        class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition"
-                    >
-                        Register Account
-                    </Link>
-                </template>
-            </nav>
+                    <div class="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
+                        <template v-if="candidate">
+                            <Link
+                                href="/dashboard"
+                                @click="mobileMenuOpen = false"
+                                class="block w-full text-center px-4 py-2.5 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-sm font-semibold rounded-xl shadow-sm transition"
+                            >
+                                My Candidate Portal
+                            </Link>
+                        </template>
+                        <template v-else>
+                            <Link
+                                href="/login"
+                                @click="mobileMenuOpen = false"
+                                class="block w-full text-center px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                            >
+                                Log in
+                            </Link>
+                            <Link
+                                href="/register"
+                                @click="mobileMenuOpen = false"
+                                class="block w-full text-center px-4 py-2.5 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-sm font-semibold rounded-xl shadow-sm transition"
+                            >
+                                Register Account
+                            </Link>
+                        </template>
+                    </div>
+                </div>
+            </transition>
         </header>
 
         <!-- Captured Error Alert Banner -->

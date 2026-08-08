@@ -68,15 +68,16 @@ const getStatusBadge = (status?: string) => {
 
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
         <!-- Top Nav -->
-        <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-6 py-4 backdrop-blur-md">
+        <header class="border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-4 sm:px-6 py-3.5 backdrop-blur-md sticky top-0 z-50">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <Link href="/opportunities" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition">
-                    <ArrowLeft class="w-4 h-4" /> Back to Directory
+                <Link href="/opportunities" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition">
+                    <ArrowLeft class="w-4 h-4" /> <span>Back to Directory</span>
                 </Link>
                 <div class="flex items-center gap-4">
-                    <!-- <ThemeToggle /> -->
                     <div class="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        <ShieldCheck class="w-4 h-4 text-[#00b2e3]" /> KBS Explanation Facility
+                        <ShieldCheck class="w-4 h-4 text-[#00b2e3] shrink-0" />
+                        <span class="hidden sm:inline">KBS Explanation Facility</span>
+                        <span class="sm:hidden">Explanation Facility</span>
                     </div>
                 </div>
             </div>
