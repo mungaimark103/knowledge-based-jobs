@@ -18,12 +18,18 @@ class SocialiteController extends Controller
      */
     public function redirectToGoogle(): RedirectResponse
     {
-        // If Google credentials are not configured locally, gracefully fall back to dev simulation
-        if (empty(config('services.google.client_id')) || config('services.google.client_id') === 'your-google-client-id') {
-            return $this->handleMockGoogleLogin();
+        $clientId = config('services.google.client_id');
+
+        if (empty($clientId) || $clientId === 'your-google-client-id') {
+            return redirect()->route('login')->with('error', 'Google Sign-In is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in environment settings.');
         }
 
-        return Socialite::driver('google')->redirect();
+        $baseUrl = config('app.url') ?: (request()->secure() ? 'https://' : 'http://') . request()->getHost();
+        $redirectUrl = env('GOOGLE_REDIRECT_URI', rtrim($baseUrl, '/') . '/auth/google/callback');
+
+        return Socialite::driver('google')
+            ->redirectUrl($redirectUrl)
+            ->redirect();
     }
 
     /**
@@ -32,29 +38,32 @@ class SocialiteController extends Controller
     public function handleGoogleCallback(): RedirectResponse
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
-            return $this->loginOrCreateUser($googleUser->getName(), $googleUser->getEmail(), $googleUser->getId());
+            $baseUrl = config('app.url') ?: (request()->secure() ? 'https://' : 'http://') . request()->getHost();
+            $redirectUrl = env('GOOGLE_REDIRECT_URI', rtrim($baseUrl, '/') . '/auth/google/callback');
+
+            $googleUser = Socialite::driver('google')
+                ->redirectUrl($redirectUrl)
+                ->user();
+
+            $name = $googleUser->getName() ?: ($googleUser->getNickname() ?: $googleUser->getEmail());
+            $email = $googleUser->getEmail();
+            $googleId = $googleUser->getId();
+
+            return $this->loginOrCreateUser($name, $email, $googleId);
         } catch (\Throwable $e) {
-            return redirect()->route('login')->with('error', 'Google authentication failed or was cancelled. Please try logging in again.');
+            return redirect()->route('login')->with('error', 'Google authentication failed: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Dev simulation mode when OAuth keys are not yet added to .env
-     */
-    public function handleMockGoogleLogin(): RedirectResponse
-    {
-        $mockEmail = 'candidate.google@example.com';
-        $mockName = 'Google Candidate User';
-
-        return $this->loginOrCreateUser($mockName, $mockEmail, 'google-mock-12345');
     }
 
     protected function loginOrCreateUser(string $name, string $email, ?string $googleId = null): RedirectResponse
     {
         $user = User::where('email', $email)->first();
 
-        if (! $user) {
+        if ($user) {
+            if (!$user->google_id && $googleId) {
+                $user->update(['google_id' => $googleId]);
+            }
+        } else {
             $user = User::create([
                 'name' => $name,
                 'email' => $email,
@@ -78,6 +87,6 @@ class SocialiteController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('success', "Welcome, {$user->name}! Successfully authenticated via Google.");
+        return redirect()->route('dashboard')->with('success', "Welcome, {$user->name}! Successfully authenticated with Google.");
     }
 }
