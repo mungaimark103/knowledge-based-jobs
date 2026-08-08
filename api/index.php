@@ -29,4 +29,21 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 
 $app->useStoragePath('/tmp');
 
-$app->handleRequest(\Illuminate\Http\Request::capture());
+// Register ViewServiceProvider explicitly to prevent "Target class [view] does not exist" on early errors
+if (!$app->bound('view')) {
+    $app->register(\Illuminate\View\ViewServiceProvider::class);
+}
+
+try {
+    $app->handleRequest(\Illuminate\Http\Request::capture());
+} catch (\Throwable $e) {
+    if (getenv('APP_DEBUG') === 'true' || env('APP_DEBUG') === true) {
+        http_response_code(500);
+        header('Content-Type: text/plain');
+        echo "Serverless Execution Error:\n";
+        echo get_class($e) . ": " . $e->getMessage() . "\n\n";
+        echo $e->getTraceAsString();
+        exit(1);
+    }
+    throw $e;
+}
