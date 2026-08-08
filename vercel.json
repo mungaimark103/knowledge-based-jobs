@@ -31,7 +31,6 @@
   ],
   "env": {
     "APP_ENV": "production",
-    "VIEW_COMPILED_PATH": "/tmp/views",
     "SESSION_DRIVER": "cookie",
     "LOG_CHANNEL": "stderr"
   }

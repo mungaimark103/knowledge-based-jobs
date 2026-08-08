@@ -1,6 +1,5 @@
 <?php
 
-// Ensure serverless writable directories exist in /tmp
 $tmpDirs = [
     '/tmp/views',
     '/tmp/sessions',
@@ -8,6 +7,7 @@ $tmpDirs = [
     '/tmp/framework/views',
     '/tmp/framework/sessions',
     '/tmp/framework/cache',
+    '/tmp/logs',
 ];
 
 foreach ($tmpDirs as $dir) {
@@ -16,5 +16,17 @@ foreach ($tmpDirs as $dir) {
     }
 }
 
-// Forward all incoming Vercel serverless requests to public/index.php
-require __DIR__ . '/../public/index.php';
+define('LARAVEL_START', microtime(true));
+
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+require __DIR__.'/../vendor/autoload.php';
+
+/** @var \Illuminate\Foundation\Application $app */
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+$app->useStoragePath('/tmp');
+
+$app->handleRequest(\Illuminate\Http\Request::capture());
