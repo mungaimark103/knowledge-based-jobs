@@ -80,7 +80,7 @@ function submit() {
                     required
                     v-model="form.name"
                     autocomplete="name"
-                    :placeholder="form.role === 'employer' ? 'e.g. Jane Doe (HR Lead)' : 'e.g. Mark Mungai'"
+                    :placeholder="form.role === 'employer' ? 'e.g. Jane Doe (HR Lead)' : 'e.g. Ian Chitechi'"
                 />
                 <InputError :message="form.errors.name" />
             </div>

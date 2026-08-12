@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import { ShieldCheck, FileCheck, CheckCircle2, Award, Sparkles, ArrowRight, UserCheck, Briefcase, ExternalLink, Upload, X, FileText, AlertCircle, Lock, Eye, Download, GraduationCap, Users, Edit3, Plus, List, ListOrdered } from '@lucide/vue';
+import { ShieldCheck, FileCheck, CheckCircle2, Award, Sparkles, ArrowRight, UserCheck, Briefcase, ExternalLink, Upload, X, FileText, AlertCircle, Lock, Eye, Download, GraduationCap, Users, Edit3, Plus, List, ListOrdered, Menu, LogOut } from '@lucide/vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+
+const mobileMenuOpen = ref(false);
 
 interface ApplicationItem {
     id: number;
@@ -349,43 +351,107 @@ const getStatusBadge = (status: string) => {
 
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
         <!-- Top Nav Header -->
-        <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3">
-                <div class="h-10 w-10 rounded-xl bg-[#00b2e3] text-white flex items-center justify-center shadow-md shadow-[#00b2e3]/20 font-bold">
-                    <ShieldCheck class="w-6 h-6" />
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                        Welcome back, {{ user?.name }}
-                    </h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Job Seeker Candidate Portal</p>
-                </div>
-            </div>
-
-            <div class="flex items-center space-x-4">
-                <button
-                    @click="showUploadModal = true"
-                    class="px-3.5 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition inline-flex items-center gap-1.5"
-                >
-                    <Upload class="w-3.5 h-3.5" /> Upload CV Document
-                </button>
-
-                <!-- <ThemeToggle /> -->
-
-                <a
-                    href="/employer/portal-switch"
-                    class="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5"
-                >
-                    🏢 Employer Portal
-                </a>
-
-                <Link
-                    href="/opportunities"
-                    class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5"
-                >
-                    <Sparkles class="w-3.5 h-3.5" /> Explore Directory
+        <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-3.5 shadow-sm">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <Link href="/" class="flex items-center space-x-3 shrink-0">
+                    <div class="h-10 w-10 rounded-xl bg-[#00b2e3] text-white flex items-center justify-center shadow-md shadow-[#00b2e3]/20 font-bold shrink-0">
+                        <ShieldCheck class="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 leading-tight">
+                            Welcome back, {{ user?.name }}
+                        </h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Job Seeker Candidate Portal</p>
+                    </div>
                 </Link>
+
+                <div class="hidden md:flex items-center space-x-3">
+                    <button
+                        @click="showUploadModal = true"
+                        class="px-3.5 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition inline-flex items-center gap-1.5"
+                    >
+                        <Upload class="w-3.5 h-3.5" /> Upload CV Document
+                    </button>
+
+                    <a
+                        href="/employer/portal-switch"
+                        class="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5"
+                    >
+                        🏢 Employer Portal
+                    </a>
+
+                    <Link
+                        href="/opportunities"
+                        class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5"
+                    >
+                        <Sparkles class="w-3.5 h-3.5" /> Explore Directory
+                    </Link>
+
+                    <Link
+                        href="/logout"
+                        method="post"
+                        as="button"
+                        class="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5"
+                    >
+                        <LogOut class="w-3.5 h-3.5" /> Log out
+                    </Link>
+                </div>
+
+                <!-- Mobile Hamburger Button -->
+                <div class="flex items-center md:hidden">
+                    <button
+                        @click="mobileMenuOpen = !mobileMenuOpen"
+                        type="button"
+                        aria-label="Toggle navigation menu"
+                        class="p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none transition"
+                    >
+                        <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
+                        <X v-else class="w-6 h-6" />
+                    </button>
+                </div>
             </div>
+
+            <!-- Mobile Drawer Menu -->
+            <transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition duration-150 ease-in"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 -translate-y-2"
+            >
+                <div v-if="mobileMenuOpen" class="md:hidden mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                    <button
+                        @click="showUploadModal = true; mobileMenuOpen = false"
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#00b2e3] hover:bg-[#0099c4] flex items-center gap-2 transition"
+                    >
+                        <Upload class="w-4 h-4" /> Upload CV Document
+                    </button>
+                    <Link
+                        href="/opportunities"
+                        @click="mobileMenuOpen = false"
+                        class="block px-3 py-2.5 rounded-xl text-sm font-semibold text-[#00b2e3] bg-[#00b2e3]/10 transition"
+                    >
+                        Explore Job Directory
+                    </Link>
+                    <a
+                        href="/employer/portal-switch"
+                        @click="mobileMenuOpen = false"
+                        class="block px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    >
+                        Employer Portal
+                    </a>
+                    <Link
+                        href="/logout"
+                        method="post"
+                        as="button"
+                        @click="mobileMenuOpen = false"
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 flex items-center gap-2 transition"
+                    >
+                        <LogOut class="w-4 h-4" /> Log out
+                    </Link>
+                </div>
+            </transition>
         </header>
 
         <main class="max-w-7xl mx-auto px-6 py-10 space-y-8">
