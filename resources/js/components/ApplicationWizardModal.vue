@@ -245,7 +245,7 @@ const stepErrors = computed(() => {
         }
     } else if (currentStep.value === 2) {
         const validEdu = form.education_history_data.filter(
-            (e) => e.degree.trim() !== '' || e.institution.trim() !== '',
+            (e: any) => e.degree.trim() !== '' || e.institution.trim() !== '',
         );
 
         if (validEdu.length === 0) {
@@ -255,7 +255,7 @@ const stepErrors = computed(() => {
         }
     } else if (currentStep.value === 3) {
         const validWork = form.work_history_data.filter(
-            (w) => w.role.trim() !== '' || w.employer.trim() !== '',
+            (w: any) => w.role.trim() !== '' || w.employer.trim() !== '',
         );
 
         if (validWork.length === 0) {
@@ -271,7 +271,7 @@ const stepErrors = computed(() => {
         }
 
         const validRefs = form.references_data.filter(
-            (r) => r.name.trim() !== '',
+            (r: any) => r.name.trim() !== '',
         );
 
         if (validRefs.length < 2) {
@@ -280,7 +280,7 @@ const stepErrors = computed(() => {
             );
         }
 
-        form.references_data.forEach((r, idx) => {
+        form.references_data.forEach((r: any, idx: number) => {
             if (r.name.trim() !== '') {
                 if (r.phone && !isValidPhone(r.phone)) {
                     errs.push(
@@ -378,7 +378,7 @@ function insertBullets(index: number) {
     } else {
         const lines = item.description.split('\n');
         item.description = lines
-            .map((line) =>
+            .map((line: string) =>
                 line.trim().startsWith('• ') || /^\d+\.\s/.test(line.trim())
                     ? line
                     : `• ${line}`,
@@ -399,7 +399,7 @@ function insertNumbers(index: number) {
     } else {
         const lines = item.description.split('\n');
         item.description = lines
-            .map((line, i) => {
+            .map((line: string, i: number) => {
                 const clean = line.replace(/^[•\d\.\s]+/, '').trim();
 
                 return clean ? `${i + 1}. ${clean}` : `${i + 1}. `;
@@ -427,8 +427,8 @@ function submitApplication() {
 
     const sortedWork = sortWorkHistoryReverseChronological(
         form.work_history_data
-            .filter((w) => w.role.trim() !== '' || w.employer.trim() !== '')
-            .map((w) => {
+            .filter((w: any) => w.role.trim() !== '' || w.employer.trim() !== '')
+            .map((w: any) => {
                 const startLabel = `${monthsList.find((m) => m.value === w.start_month)?.name || w.start_month} ${w.start_year}`;
                 const endLabel = w.is_current
                     ? 'Present'
@@ -445,10 +445,10 @@ function submitApplication() {
         ...data,
         work_history_data: sortedWork,
         education_history_data: data.education_history_data.filter(
-            (e) => e.degree.trim() !== '' || e.institution.trim() !== '',
+            (e: any) => e.degree.trim() !== '' || e.institution.trim() !== '',
         ),
         references_data: data.references_data.filter(
-            (r) => r.name.trim() !== '',
+            (r: any) => r.name.trim() !== '',
         ),
     })).post(`/opportunities/${props.job.id}/apply`, {
         preserveScroll: true,

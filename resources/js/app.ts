@@ -24,6 +24,10 @@ createInertiaApp({
         }
     },
     setup({ el, App, props, plugin }) {
+        if (!el) {
+return;
+}
+
         const vueApp = createApp({ render: () => h(App, props) });
         vueApp.config.errorHandler = (err, instance, info) => {
             console.error('Captured Vue Runtime Error:', err);

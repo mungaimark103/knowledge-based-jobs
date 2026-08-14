@@ -8,6 +8,11 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+
+defineProps<{
+    title?: string;
+    description?: string;
+}>();
 </script>
 
 <template>
