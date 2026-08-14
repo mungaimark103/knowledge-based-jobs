@@ -11,7 +11,6 @@ use App\Models\MatchingRule;
 use App\Models\Organization;
 use App\Models\User;
 use App\Notifications\NewJobPostingNotification;
-use App\Services\MatchingEngine;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -303,6 +302,14 @@ class MatchingCriteriaSeeder extends Seeder
             'verified_by' => $agencyAdmin->id,
         ]);
 
+        // Seed application for Ian Chitechi
+        JobApplication::create([
+            'candidate_id' => $mainClientUser->id,
+            'job_posting_id' => $safaricomJob2->id,
+            'status' => 'shortlisted',
+            'applied_at' => now()->subDays(2),
+        ]);
+
         // 5. Seed 10 Additional Clients with Diverse & Distinct Profiles
         $diverseProfiles = [
             1 => [
@@ -312,7 +319,7 @@ class MatchingCriteriaSeeder extends Seeder
                 'skills' => ['React', 'JavaScript', 'HTML', 'CSS', 'Tailwind'],
                 'reliability' => 82.0,
                 'applied_job' => $safaricomJob2,
-                'status' => 'applied',
+                'status' => 'submitted',
             ],
             2 => [
                 'name' => 'DevOps & Cloud Engineer',
@@ -348,7 +355,7 @@ class MatchingCriteriaSeeder extends Seeder
                 'skills' => ['Customer Support', 'Communication', 'M-PESA', 'Digital Troubleshooting'],
                 'reliability' => 89.5,
                 'applied_job' => $safaricomJob1,
-                'status' => 'in_review',
+                'status' => 'submitted',
             ],
             6 => [
                 'name' => 'Senior PHP & Fintech Engineer',
@@ -366,7 +373,7 @@ class MatchingCriteriaSeeder extends Seeder
                 'skills' => ['AWS', 'Docker', 'System Architecture', 'DevOps', 'Cybersecurity'],
                 'reliability' => 86.0,
                 'applied_job' => $flexiJob,
-                'status' => 'in_review',
+                'status' => 'submitted',
             ],
             8 => [
                 'name' => 'Data Scientist & Business Analyst',
@@ -393,23 +400,9 @@ class MatchingCriteriaSeeder extends Seeder
                 'skills' => ['HR Strategy', 'Financial Accounting', 'Project Management', 'Communication'],
                 'reliability' => 98.0,
                 'applied_job' => $summitJob,
-                'status' => 'offered',
+                'status' => 'hired',
             ],
         ];
-
-        $matchingEngine = new MatchingEngine();
-
-        // Also evaluate main client Ian Chitechi for Safaricom Senior Backend Engineer
-        $ianEval = $matchingEngine->evaluate($mainClientUser, $safaricomJob2);
-        JobApplication::create([
-            'candidate_id' => $mainClientUser->id,
-            'job_posting_id' => $safaricomJob2->id,
-            'status' => 'shortlisted',
-            'score' => $ianEval['score'],
-            'kbs_status' => $ianEval['status'],
-            'kbs_evaluation' => $ianEval,
-            'applied_at' => now()->subDays(2),
-        ]);
 
         for ($i = 1; $i <= 10; $i++) {
             $pData = $diverseProfiles[$i];
@@ -421,7 +414,7 @@ class MatchingCriteriaSeeder extends Seeder
                 'role' => 'candidate',
             ]);
 
-            $cp = CandidateProfile::create([
+            CandidateProfile::create([
                 'user_id' => $u->id,
                 'education_level' => $pData['education'],
                 'years_experience' => $pData['experience'],
@@ -431,17 +424,12 @@ class MatchingCriteriaSeeder extends Seeder
                 'summary' => "Professional profile for {$pData['name']} specializing in " . implode(', ', $pData['skills']) . '.',
             ]);
 
-            // Create initial application and compute match score
             $jobToApply = $pData['applied_job'];
-            $eval = $matchingEngine->evaluate($u, $jobToApply);
 
             JobApplication::create([
                 'candidate_id' => $u->id,
                 'job_posting_id' => $jobToApply->id,
                 'status' => $pData['status'],
-                'score' => $eval['score'],
-                'kbs_status' => $eval['status'],
-                'kbs_evaluation' => $eval,
                 'applied_at' => now()->subDays(rand(1, 10)),
             ]);
 
