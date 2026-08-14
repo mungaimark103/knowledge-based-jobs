@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ArrowLeft, ShieldCheck, CheckCircle2, AlertTriangle, XCircle, Scale, HelpCircle, Building2, MapPin, Calendar, FileText, Lock, UserCheck, X } from '@lucide/vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
 import GuestAuthModal from '@/components/GuestAuthModal.vue';
 import ApplicationWizardModal from '@/components/ApplicationWizardModal.vue';
 
@@ -76,7 +75,7 @@ const getStatusBadge = (status?: string) => {
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
                         <ShieldCheck class="w-4 h-4 text-[#00b2e3] shrink-0" />
-                        <span class="hidden sm:inline">KBS Explanation Facility</span>
+                        <span class="hidden sm:inline">JobSync Explanation Facility</span>
                         <span class="sm:hidden">Explanation Facility</span>
                     </div>
                 </div>

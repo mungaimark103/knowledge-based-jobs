@@ -225,6 +225,12 @@ function updateCriteriaWeights() {
                 </div>
 
                 <div class="hidden md:flex items-center space-x-3">
+                    <Link
+                        href="/admin/audit"
+                        class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm transition inline-flex items-center gap-1.5"
+                    >
+                        <ShieldCheck class="w-4 h-4" /> System Audit Trail
+                    </Link>
                     <button
                         @click="showProvisionStaffModal = true"
                         class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition inline-flex items-center gap-1.5"
@@ -235,7 +241,7 @@ function updateCriteriaWeights() {
                         @click="showProxyModal = true"
                         class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition inline-flex items-center gap-1.5"
                     >
-                        <Plus class="w-4 h-4" /> Proxy Candidate Entry
+                        <Plus class="w-4 h-4" /> Proxy Client Entry
                     </button>
                     <Link href="/opportunities" class="text-xs font-semibold text-[#00b2e3] hover:underline flex items-center gap-1">
                         <Eye class="w-3.5 h-3.5" /> Public Directory

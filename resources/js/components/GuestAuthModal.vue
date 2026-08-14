@@ -23,16 +23,16 @@ defineEmits(['close']);
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Account Required</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Knowledge-Based Suitability Evaluation</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">JobSync Suitability Evaluation</p>
                 </div>
             </div>
 
             <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl text-xs text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
                 <p class="font-semibold text-slate-900 dark:text-slate-100">
-                    You must log in or create a candidate account to apply for <span class="text-[#00b2e3] font-bold">{{ jobTitle }}</span>.
+                    You must log in or create a Client account to apply for <span class="text-[#00b2e3] font-bold">{{ jobTitle }}</span>.
                 </p>
                 <p>
-                    Creating an account enables our Knowledge-Based System (KBS) engine to benchmark your real credentials against explicit UN/multilateral grade criteria and generate your transparent suitability scorecard.
+                    Creating an account enables our JobSync engine to benchmark your credentials against explicit job criteria and generate your transparent suitability scorecard.
                 </p>
             </div>
 

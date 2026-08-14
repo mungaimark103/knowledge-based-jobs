@@ -32,8 +32,8 @@ class NewJobPostingNotification extends Notification
             ->line("**Organization:** {$orgName}")
             ->line("**Location:** {$this->jobPosting->location}")
             ->line("**Grade:** {$this->jobPosting->grade}")
-            ->action('View Vacancy & Apply via KBS Wizard', route('opportunities.index', ['search' => $this->jobPosting->title]))
-            ->line('Thank you for using the Knowledge-Based Talent & Matching System!');
+            ->action('View Vacancy & Apply via JobSync Wizard', route('opportunities.show', ['id' => $this->jobPosting->id]))
+            ->line('Thank you for using JobSync!');
     }
 
     public function toArray(object $notifiable): array
@@ -42,12 +42,14 @@ class NewJobPostingNotification extends Notification
 
         return [
             'job_id' => $this->jobPosting->id,
-            'title' => $this->jobPosting->title,
+            'title' => "New Match: {$this->jobPosting->title}",
+            'job_title' => $this->jobPosting->title,
             'organization_name' => $orgName,
             'grade' => $this->jobPosting->grade,
             'location' => $this->jobPosting->location,
-            'message' => "New matching vacancy '{$this->jobPosting->title}' posted by {$orgName}.",
-            'url' => route('opportunities.index', ['search' => $this->jobPosting->title]),
+            'type' => 'job',
+            'message' => "New job vacancy '{$this->jobPosting->title}' posted by {$orgName}.",
+            'url' => route('opportunities.show', ['id' => $this->jobPosting->id]),
         ];
     }
 }

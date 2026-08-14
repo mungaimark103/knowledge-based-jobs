@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ResumeParserService;
+use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,75 +12,156 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class CandidateProfileController extends Controller
 {
     /**
+     * Document type configuration mapping
+     */
+    protected array $docTypes = [
+        'resume' => [
+            'path_col' => 'resume_path',
+            'name_col' => 'resume_filename',
+            'folder' => 'resumes',
+            'label' => 'CV / Resume',
+        ],
+        'recommendation_letter' => [
+            'path_col' => 'recommendation_letter_path',
+            'name_col' => 'recommendation_letter_filename',
+            'folder' => 'recommendation_letters',
+            'label' => 'Recommendation Letter',
+        ],
+        'references_doc' => [
+            'path_col' => 'references_doc_path',
+            'name_col' => 'references_doc_filename',
+            'folder' => 'references_docs',
+            'label' => 'References Document',
+        ],
+        'portfolio_doc' => [
+            'path_col' => 'portfolio_doc_path',
+            'name_col' => 'portfolio_doc_filename',
+            'folder' => 'portfolio_docs',
+            'label' => 'Work Portfolio',
+        ],
+        'transcripts_doc' => [
+            'path_col' => 'transcripts_doc_path',
+            'name_col' => 'transcripts_doc_filename',
+            'folder' => 'transcripts_docs',
+            'label' => 'Academic Transcripts',
+        ],
+    ];
+
     /**
-     * Upload CV/Resume File as a Reference Attachment (No brittle parsing)
+     * Upload CV/Resume File (legacy compatibility route)
      */
     public function uploadResume(Request $request): RedirectResponse
     {
+        $request->merge(['doc_type' => 'resume']);
+        return $this->uploadDocument($request);
+    }
+
+    /**
+     * Upload specific Client Document (Resume, Recommendation Letter, References, Portfolio, Academic Transcripts)
+     */
+    public function uploadDocument(Request $request): RedirectResponse
+    {
+        $docType = $request->input('doc_type', 'resume');
+        if (! isset($this->docTypes[$docType])) {
+            $docType = 'resume';
+        }
+
+        $config = $this->docTypes[$docType];
+        $fileKey = $docType === 'resume' ? 'resume' : 'document_file';
+
         $request->validate([
-            'resume' => ['required', 'file', 'max:10240', 'extensions:pdf,doc,docx,txt,rtf'],
+            $fileKey => ['required', 'file', 'max:15360', 'mimes:pdf,doc,docx,txt,rtf,zip,png,jpg,jpeg'],
         ], [
-            'resume.required' => 'Please select a CV/Resume document to upload.',
-            'resume.extensions' => 'The uploaded file must be a valid PDF, DOCX, DOC, TXT, or RTF file.',
-            'resume.max' => 'The CV file size must not exceed 10MB.',
+            "{$fileKey}.required" => "Please select a file to upload for {$config['label']}.",
+            "{$fileKey}.mimes" => "The uploaded file must be a valid document (PDF, DOCX, DOC, TXT, RTF, ZIP, PNG, JPG).",
+            "{$fileKey}.max" => "The file size must not exceed 15MB.",
         ]);
 
         try {
             $user = $request->user();
-            $profile = $user->candidateProfile()->firstOrCreate([
-                'user_id' => $user->id,
-            ]);
+            $profile = $user->candidateProfile()->firstOrCreate(['user_id' => $user->id]);
 
-            $file = $request->file('resume');
+            $file = $request->file($fileKey);
             if (! $file || ! $file->isValid()) {
-                return redirect()->back()->with('error', 'The uploaded file appears to be corrupted or incomplete. Please try uploading again.');
+                return redirect()->back()->with('error', 'The uploaded file appears to be corrupted. Please try again.');
             }
 
-            $filePath = $file->store('resumes', 'public');
+            $filePath = $file->store($config['folder'], 'public');
             $originalName = $file->getClientOriginalName();
 
             $profile->update([
-                'resume_path' => $filePath,
-                'resume_filename' => $originalName,
+                $config['path_col'] => $filePath,
+                $config['name_col'] => $originalName,
             ]);
 
-            return redirect()->back()->with('success', "CV document '{$originalName}' uploaded and attached successfully! To edit your candidate facts for KBS job matching, use the Digital CV Builder form.");
+            AuditLogger::log(
+                'DOCUMENT_UPLOAD',
+                "Client uploaded {$config['label']} document '{$originalName}'.",
+                ['document_type' => $docType, 'filename' => $originalName, 'file_path' => $filePath],
+                $user
+            );
+
+            return redirect()->back()->with('success', "{$config['label']} '{$originalName}' uploaded successfully!");
         } catch (\Throwable $e) {
-            Log::error('Resume upload error: ' . $e->getMessage(), ['exception' => $e]);
-            return redirect()->back()->with('error', 'An unexpected error occurred while attaching your CV document: ' . $e->getMessage());
+            Log::error("Document upload error ({$docType}): " . $e->getMessage(), ['exception' => $e]);
+            return redirect()->back()->with('error', 'An unexpected error occurred while uploading your document.');
         }
     }
 
     /**
-     * View Uploaded CV Document inline in browser
+     * View Uploaded Document inline
      */
+    public function viewDocument(Request $request, string $docType = 'resume'): StreamedResponse|RedirectResponse
+    {
+        $user = $request->user();
+        $profile = $user->candidateProfile;
+
+        if (! isset($this->docTypes[$docType])) {
+            $docType = 'resume';
+        }
+
+        $config = $this->docTypes[$docType];
+        $filePath = $profile?->{$config['path_col']};
+        $fileName = $profile?->{$config['name_col']} ?? "{$docType}.pdf";
+
+        if (! $profile || ! $filePath || ! Storage::disk('public')->exists($filePath)) {
+            return redirect()->back()->with('error', "No {$config['label']} document uploaded yet.");
+        }
+
+        return Storage::disk('public')->response($filePath, $fileName);
+    }
+
+    /**
+     * Download Uploaded Document
+     */
+    public function downloadDocument(Request $request, string $docType = 'resume'): StreamedResponse|RedirectResponse
+    {
+        $user = $request->user();
+        $profile = $user->candidateProfile;
+
+        if (! isset($this->docTypes[$docType])) {
+            $docType = 'resume';
+        }
+
+        $config = $this->docTypes[$docType];
+        $filePath = $profile?->{$config['path_col']};
+        $fileName = $profile?->{$config['name_col']} ?? "{$docType}.pdf";
+
+        if (! $profile || ! $filePath || ! Storage::disk('public')->exists($filePath)) {
+            return redirect()->back()->with('error', "No {$config['label']} document uploaded yet.");
+        }
+
+        return Storage::disk('public')->download($filePath, $fileName);
+    }
+
     public function viewResume(Request $request): StreamedResponse|RedirectResponse
     {
-        $user = $request->user();
-        $profile = $user->candidateProfile;
-
-        if (! $profile || ! $profile->resume_path || ! Storage::disk('public')->exists($profile->resume_path)) {
-            return redirect()->back()->with('error', 'No CV document uploaded yet.');
-        }
-
-        return Storage::disk('public')->response($profile->resume_path, $profile->resume_filename ?? 'resume.pdf', [
-            'Content-Type' => 'application/pdf',
-        ]);
+        return $this->viewDocument($request, 'resume');
     }
 
-    /**
-     * Download Uploaded CV File
-     */
     public function downloadResume(Request $request): StreamedResponse|RedirectResponse
     {
-        $user = $request->user();
-        $profile = $user->candidateProfile;
-
-        if (! $profile || ! $profile->resume_path || ! Storage::disk('public')->exists($profile->resume_path)) {
-            return redirect()->back()->with('error', 'No CV document uploaded yet.');
-        }
-
-        return Storage::disk('public')->download($profile->resume_path, $profile->resume_filename ?? 'resume.pdf');
+        return $this->downloadDocument($request, 'resume');
     }
 
     /**
@@ -116,11 +197,7 @@ class CandidateProfileController extends Controller
             'references_list.*.title' => 'nullable|string',
             'references_list.*.organization' => 'nullable|string',
             'references_list.*.email' => 'nullable|email',
-            'references_list.*.phone' => ['nullable', 'string', 'regex:/^\+?[0-9\s\-\(\)]{7,20}$/'],
-        ], [
-            'skills.required' => 'Please provide at least one technical or professional skill tag.',
-            'references_list.*.email.email' => 'The referee email address must be a valid email format.',
-            'references_list.*.phone.regex' => 'The referee phone number format is invalid (e.g. +254 700 000 000).',
+            'references_list.*.phone' => ['nullable', 'string'],
         ]);
 
         $cleanWork = array_values(array_filter($validated['work_history'] ?? [], fn ($w) => ! empty($w['role']) || ! empty($w['employer'])));
@@ -140,7 +217,14 @@ class CandidateProfileController extends Controller
             'reliability_score' => $profile->reliability_score ?? 85.0,
         ]);
 
-        return redirect()->back()->with('success', 'Structured Digital CV Profile updated successfully!');
+        AuditLogger::log(
+            'PROFILE_UPDATE',
+            "Client updated Structured Profile (Education: {$validated['education_level']}, Experience: {$finalYears} yrs).",
+            $validated,
+            $user
+        );
+
+        return redirect()->back()->with('success', 'Client Profile updated successfully!');
     }
 
     protected function calculateExperienceYears(array $workHistory): int

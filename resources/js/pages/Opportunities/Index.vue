@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onErrorCaptured } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Search, ShieldCheck, Sparkles, MapPin, Award, CheckCircle2, AlertTriangle, XCircle, ArrowRight, UserCheck, Menu, X } from '@lucide/vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
+import { Search, ShieldCheck, Sparkles, MapPin, Award, CheckCircle2, AlertTriangle, XCircle, ArrowRight, UserCheck, Menu, X, Building2, Briefcase, Users } from '@lucide/vue';
 
 const mobileMenuOpen = ref(false);
 
@@ -11,6 +10,7 @@ interface Opportunity {
     title: string;
     organization: string;
     org_code: string;
+    org_type?: string;
     logo_path?: string;
     grade: string;
     location: string;
@@ -97,10 +97,6 @@ const paginationLinks = computed(() => {
     return props.opportunities?.links || [];
 });
 
-const filteredOpportunities = computed(() => {
-    return opportunitiesData.value;
-});
-
 const getStatusBadge = (status?: string) => {
     if (status === 'recommended') return { label: 'Recommended Match', class: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30', icon: CheckCircle2 };
     if (status === 'flagged') return { label: 'Needs Review', class: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30', icon: AlertTriangle };
@@ -109,38 +105,35 @@ const getStatusBadge = (status?: string) => {
 </script>
 
 <template>
-    <Head title="KBS Impact Opportunities Directory" />
+    <Head title="JobSync — Exploring Job Vacancies & Directory" />
 
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
         <!-- Public Navigation Header -->
-        <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-3.5 shadow-sm">
+        <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-3.5 shadow-xs">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
                 <Link href="/" class="flex items-center space-x-3 shrink-0">
                     <div class="h-10 w-10 rounded-xl bg-[#00b2e3] text-white flex items-center justify-center shadow-md shadow-[#00b2e3]/20 font-bold shrink-0">
-                        <ShieldCheck class="w-6 h-6" />
+                        JS
                     </div>
                     <div>
                         <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                            Impact Talent KBS
+                            JobSync
                         </h1>
-                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Knowledge-Based Career & Talent Platform</p>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Knowledge-Based Job Vacancies Directory</p>
                     </div>
                 </Link>
 
                 <nav class="hidden md:flex items-center space-x-6">
                     <Link href="/opportunities" class="text-xs font-semibold text-[#00b2e3] flex items-center gap-1.5">
-                        <Sparkles class="w-4 h-4" /> Directory
+                        <Sparkles class="w-4 h-4" /> Exploring Job Vacancies
                     </Link>
-                    <a href="/employer/portal-switch" class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition">
-                        Employer Portal
-                    </a>
 
                     <template v-if="candidate">
                         <Link
                             href="/dashboard"
-                            class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition"
+                            class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-xs transition"
                         >
-                            My Candidate Portal
+                            Client Dashboard
                         </Link>
                     </template>
                     <template v-else>
@@ -152,9 +145,9 @@ const getStatusBadge = (status?: string) => {
                         </Link>
                         <Link
                             href="/register"
-                            class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-sm transition"
+                            class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-xs transition"
                         >
-                            Register Account
+                            Register Client
                         </Link>
                     </template>
                 </nav>
@@ -164,7 +157,6 @@ const getStatusBadge = (status?: string) => {
                     <button
                         @click="mobileMenuOpen = !mobileMenuOpen"
                         type="button"
-                        aria-label="Toggle navigation menu"
                         class="p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none transition"
                     >
                         <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
@@ -172,257 +164,153 @@ const getStatusBadge = (status?: string) => {
                     </button>
                 </div>
             </div>
-
-            <!-- Mobile Drawer Menu -->
-            <transition
-                enter-active-class="transition duration-200 ease-out"
-                enter-from-class="opacity-0 -translate-y-2"
-                enter-to-class="opacity-100 translate-y-0"
-                leave-active-class="transition duration-150 ease-in"
-                leave-from-class="opacity-100 translate-y-0"
-                leave-to-class="opacity-0 -translate-y-2"
-            >
-                <div v-if="mobileMenuOpen" class="md:hidden mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                    <Link
-                        href="/opportunities"
-                        @click="mobileMenuOpen = false"
-                        class="block px-3 py-2.5 rounded-xl text-sm font-semibold text-[#00b2e3] bg-[#00b2e3]/10 transition"
-                    >
-                        Directory
-                    </Link>
-                    <a
-                        href="/employer/portal-switch"
-                        @click="mobileMenuOpen = false"
-                        class="block px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                    >
-                        Employer Portal
-                    </a>
-
-                    <div class="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
-                        <template v-if="candidate">
-                            <Link
-                                href="/dashboard"
-                                @click="mobileMenuOpen = false"
-                                class="block w-full text-center px-4 py-2.5 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-sm font-semibold rounded-xl shadow-sm transition"
-                            >
-                                My Candidate Portal
-                            </Link>
-                        </template>
-                        <template v-else>
-                            <Link
-                                href="/login"
-                                @click="mobileMenuOpen = false"
-                                class="block w-full text-center px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                            >
-                                Log in
-                            </Link>
-                            <Link
-                                href="/register"
-                                @click="mobileMenuOpen = false"
-                                class="block w-full text-center px-4 py-2.5 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-sm font-semibold rounded-xl shadow-sm transition"
-                            >
-                                Register Account
-                            </Link>
-                        </template>
-                    </div>
-                </div>
-            </transition>
         </header>
-
-        <!-- Captured Error Alert Banner -->
-        <div v-if="capturedError" class="max-w-7xl mx-auto px-6 pt-6">
-            <div class="p-4 bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 rounded-2xl text-xs flex items-center justify-between gap-4">
-                <div class="flex items-center gap-2">
-                    <AlertTriangle class="w-4 h-4 text-rose-500 shrink-0" />
-                    <span><strong>Rendering Error Captured:</strong> {{ capturedError }}</span>
-                </div>
-                <button @click="capturedError = null; window.location.reload()" class="px-3 py-1 bg-rose-600 text-white font-semibold rounded-xl text-xs shadow-sm hover:bg-rose-700 transition">
-                    Reload Page
-                </button>
-            </div>
-        </div>
 
         <!-- Hero Section -->
         <section class="relative px-6 py-10 max-w-7xl mx-auto text-center">
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#00b2e3]/10 border border-[#00b2e3]/20 text-[#00b2e3] text-xs font-semibold mb-4">
-                <UserCheck class="w-3.5 h-3.5" /> Rule-Driven Candidate Qualification Engine
+                <UserCheck class="w-3.5 h-3.5" /> Rule-Driven Client Qualification Directory
             </div>
             <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Find Your Next Career in <span class="text-[#00b2e3]">Global Impact & Public Sector</span>
+                Exploring Job Vacancies & Employment Agencies
             </h2>
-            <p class="mt-2 text-slate-600 dark:text-slate-400 text-sm max-w-2xl mx-auto">
-                Explore verified public vacancies with transparent qualification benchmarking.
+            <p class="text-xs md:text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mt-2 leading-relaxed">
+                Discover job vacancies posted by leading corporations like Safaricom PLC and top Employment Agencies including Corporate Staffing Services, Summit Recruitment & Search, and Flexi Personnel.
             </p>
 
-            <!-- Search Bar -->
-            <div class="mt-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-2xl shadow-lg">
-                <div class="md:col-span-2 relative">
-                    <Search class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
-                    <input
-                        v-model="searchQuery"
-                        type="text"
-                        placeholder="Search title, skills (e.g. M&E, Climate, Policy)..."
-                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#00b2e3]/20 transition"
-                    />
+            <!-- Featured Employment Agencies Highlights -->
+            <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-3">
+                    <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-500">
+                        <Building2 class="w-5 h-5" />
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100">Corporate Staffing Services</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500 font-semibold">Employment Agency</span>
+                    </div>
                 </div>
-                <div>
-                    <select
-                        v-model="selectedGrade"
-                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs rounded-xl px-3 py-2.5 focus:outline-none transition"
-                    >
-                        <option value="all">All Grades</option>
-                        <option v-for="g in (filterGrades || ['P-1', 'P-2', 'P-3', 'P-4', 'P-5', 'D-1', 'C-Suite', 'GS-7'])" :key="g" :value="g">
-                            {{ g }}
-                        </option>
-                    </select>
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-3">
+                    <div class="p-2.5 rounded-xl bg-sky-500/10 text-sky-500">
+                        <Briefcase class="w-5 h-5" />
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100">Summit Recruitment & Search</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-500 font-semibold">Executive Search Agency</span>
+                    </div>
                 </div>
-                <div>
-                    <select
-                        v-model="selectedOrg"
-                        class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs rounded-xl px-3 py-2.5 focus:outline-none transition"
-                    >
-                        <option value="all">All Organizations</option>
-                        <option v-for="o in (filterOrgs || [])" :key="o.code" :value="o.code">
-                            {{ o.name }} ({{ o.code }})
-                        </option>
-                    </select>
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-3">
+                    <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500">
+                        <Users class="w-5 h-5" />
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100">Flexi Personnel</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-semibold">HR & Staffing Agency</span>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Directory Grid -->
-        <main class="max-w-7xl mx-auto px-6 pb-20 grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <!-- Sidebar Profile Card -->
-            <aside class="space-y-6">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
-                    <h3 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                        <Award class="w-4 h-4 text-[#00b2e3]" /> Candidate KBS Profile
-                    </h3>
-
-                    <div v-if="candidate" class="space-y-2 text-xs">
-                        <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-                            <span class="text-slate-500">Candidate</span>
-                            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ candidate.name }}</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-                            <span class="text-slate-500">Experience</span>
-                            <span class="font-semibold text-[#00b2e3]">{{ candidate.candidate_profile?.years_experience || 0 }} Years</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-                            <span class="text-slate-500">Reliability Score</span>
-                            <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ candidate.candidate_profile?.reliability_score || 85 }}%</span>
-                        </div>
-                    </div>
-
-                    <div v-else class="space-y-3 text-xs text-slate-500">
-                        <p class="leading-relaxed">
-                            Sign in or create a free Job Seeker profile to unlock automated KBS suitability scoring against active vacancies.
-                        </p>
-                        <div class="flex flex-col gap-2 pt-1">
-                            <Link
-                                href="/register"
-                                class="w-full py-2 bg-[#00b2e3] text-white font-semibold text-xs rounded-xl text-center shadow-sm hover:bg-[#0099c4] transition"
-                            >
-                                Register Candidate Account
-                            </Link>
-                            <Link
-                                href="/login"
-                                class="w-full py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl text-center hover:bg-slate-200 transition"
-                            >
-                                Existing Candidate Login
-                            </Link>
-                        </div>
-                    </div>
+        <!-- Directory Filter Bar -->
+        <main class="max-w-7xl mx-auto px-6 pb-16 space-y-6">
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center gap-4 shadow-xs">
+                <div class="relative w-full md:flex-1">
+                    <Search class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+                    <input
+                        v-model="searchQuery"
+                        type="text"
+                        placeholder="Search by job title, agency, Safaricom PLC, skill tag..."
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-[#00b2e3]"
+                    />
                 </div>
-            </aside>
 
-            <!-- Opportunities List -->
-            <section class="lg:col-span-3 space-y-4">
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <select
+                        v-model="selectedGrade"
+                        class="w-full md:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-[#00b2e3]"
+                    >
+                        <option value="all">All Job Grades</option>
+                        <option v-for="g in filterGrades" :key="g" :value="g">{{ g }}</option>
+                    </select>
+
+                    <select
+                        v-model="selectedOrg"
+                        class="w-full md:w-auto px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:outline-none focus:border-[#00b2e3]"
+                    >
+                        <option value="all">All Organizations & Employment Agencies</option>
+                        <option v-for="o in filterOrgs" :key="o.code" :value="o.code">{{ o.name }} ({{ o.code }})</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Job Vacancies Cards List -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div
-                    v-for="opp in filteredOpportunities"
-                    :key="opp.id"
-                    class="bg-white dark:bg-slate-900 hover:bg-slate-50/80 dark:hover:bg-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-[#00b2e3]/40 rounded-2xl p-6 transition-all duration-200 shadow-sm"
+                    v-for="job in opportunitiesData"
+                    :key="job.id"
+                    class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs hover:border-[#00b2e3]/40 transition space-y-4 flex flex-col justify-between"
                 >
-                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-md bg-[#00b2e3]/10 text-[#00b2e3] border border-[#00b2e3]/20 text-xs font-bold font-mono">
-                                    {{ opp.grade }}
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#00b2e3]/10 text-[#00b2e3] border border-[#00b2e3]/20 uppercase">
+                                    {{ job.grade }}
                                 </span>
-                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                    {{ opp.organization }}
-                                </span>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 mt-2 leading-snug">
+                                    {{ job.title }}
+                                </h3>
+                                <div class="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-0.5 flex items-center gap-1.5">
+                                    <Building2 class="w-3.5 h-3.5 text-slate-400" />
+                                    {{ job.organization }}
+                                </div>
                             </div>
-                            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">
-                                {{ opp.title }}
-                            </h3>
-                            <div class="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="flex items-center gap-1"><MapPin class="w-3.5 h-3.5" /> {{ opp.location }}</span>
-                                <span>Min Experience: {{ opp.min_experience }} Yrs</span>
+
+                            <div v-if="job.kbs_match" :class="['px-3 py-1.5 rounded-2xl border text-center shrink-0', getStatusBadge(job.kbs_match.status).class]">
+                                <div class="text-xs font-black">{{ job.kbs_match.score }}%</div>
+                                <div class="text-[9px] font-bold uppercase">{{ job.kbs_match.status }}</div>
                             </div>
                         </div>
 
-                        <!-- KBS Evaluation Badge -->
-                        <div v-if="opp.kbs_match" class="flex flex-col items-end gap-1">
-                            <div :class="['px-3 py-1 rounded-xl border flex items-center gap-1.5 text-xs font-bold shadow-sm', getStatusBadge(opp.kbs_match.status).class]">
-                                <component :is="getStatusBadge(opp.kbs_match.status).icon" class="w-3.5 h-3.5" />
-                                <span>KBS Match: {{ opp.kbs_match.score }}%</span>
-                            </div>
-                        </div>
-                    </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed">
+                            {{ job.description }}
+                        </p>
 
-                    <p class="mt-3 text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
-                        {{ opp.description }}
-                    </p>
-
-                    <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <div class="flex flex-wrap gap-1.5">
-                            <span
-                                v-for="skill in opp.required_skills"
-                                :key="skill"
-                                class="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md text-[11px]"
-                            >
+                        <div class="flex flex-wrap gap-1.5 pt-2">
+                            <span v-for="skill in job.required_skills" :key="skill" class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-semibold rounded-md">
                                 {{ skill }}
                             </span>
+                            <span v-for="lang in job.required_languages" :key="lang" class="px-2 py-0.5 bg-amber-500/10 text-amber-600 text-[10px] font-semibold rounded-md border border-amber-500/20">
+                                Language: {{ lang }}
+                            </span>
                         </div>
+                    </div>
 
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div class="text-[11px] text-slate-500 flex items-center gap-1">
+                            <MapPin class="w-3.5 h-3.5" /> {{ job.location }}
+                        </div>
                         <Link
-                            :href="`/opportunities/${opp.id}`"
-                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white rounded-xl text-xs font-semibold shadow-sm transition"
+                            :href="`/opportunities/${job.id}`"
+                            class="px-4 py-2 bg-[#00b2e3] hover:bg-[#0099c4] text-white text-xs font-semibold rounded-xl shadow-xs transition inline-flex items-center gap-1.5"
                         >
-                            View Job Specification <ArrowRight class="w-3.5 h-3.5" />
+                            View & Apply <ArrowRight class="w-3.5 h-3.5" />
                         </Link>
                     </div>
                 </div>
+            </div>
 
-                <div v-if="!filteredOpportunities.length" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-3">
-                    <ShieldCheck class="w-10 h-10 text-slate-400 mx-auto" />
-                    <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">No Matching Vacancies Found</h3>
-                    <p class="text-xs text-slate-500">Try broadening your search query or grade filters.</p>
-                </div>
-
-                <!-- Pagination Controls Bar -->
-                <div v-if="paginationLinks.length > 3" class="mt-8 flex items-center justify-center gap-1.5 pt-6 border-t border-slate-200 dark:border-slate-800">
-                    <template v-for="(link, key) in paginationLinks" :key="key">
-                        <div
-                            v-if="link.url === null"
-                            class="px-3 py-1.5 text-xs font-semibold text-slate-400 dark:text-slate-600 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-not-allowed opacity-50"
-                            v-html="link.label"
-                        />
-                        <Link
-                            v-else
-                            :href="link.url"
-                            :class="[
-                                'px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition shadow-sm',
-                                link.active
-                                    ? 'bg-[#00b2e3] border-[#00b2e3] text-white font-bold'
-                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            ]"
-                            v-html="link.label"
-                        />
-                    </template>
-                </div>
-            </section>
+            <!-- Pagination Links -->
+            <div v-if="paginationLinks.length > 3" class="flex justify-center gap-1 pt-6">
+                <Link
+                    v-for="(link, i) in paginationLinks"
+                    :key="i"
+                    :href="link.url || '#'"
+                    v-html="link.label"
+                    :class="[
+                        'px-3 py-1.5 rounded-xl text-xs font-semibold transition',
+                        link.active ? 'bg-[#00b2e3] text-white' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                    ]"
+                />
+            </div>
         </main>
     </div>
 </template>

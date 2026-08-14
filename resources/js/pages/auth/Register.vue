@@ -14,8 +14,8 @@ defineProps<{
 
 defineOptions({
     layout: {
-        title: 'Create an account',
-        description: 'Enter your details below to create your account',
+        title: 'Create a Client account',
+        description: 'Enter your details below to create your JobSync Client account',
     },
 });
 
@@ -25,9 +25,6 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
-    organization_name: '',
-    organization_code: '',
-    organization_type: 'UN_AGENCY',
 });
 
 function submit() {
@@ -38,56 +35,27 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Register" />
+    <Head title="Register Client Account" />
 
     <form @submit.prevent="submit" class="flex flex-col gap-5">
         <div class="grid gap-5">
-            <!-- Account Type Selection -->
-            <div class="grid gap-2">
-                <Label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Account Type</Label>
-                <div class="grid grid-cols-2 gap-3">
-                    <label
-                        :class="[
-                            'flex items-center justify-center p-3 rounded-xl border cursor-pointer transition text-xs font-semibold',
-                            form.role === 'candidate'
-                                ? 'border-[#00b2e3] bg-[#00b2e3]/10 text-[#00b2e3]'
-                                : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                        ]"
-                    >
-                        <input type="radio" v-model="form.role" value="candidate" class="sr-only" />
-                        <span>👤 Job Seeker (Candidate)</span>
-                    </label>
-                    <label
-                        :class="[
-                            'flex items-center justify-center p-3 rounded-xl border cursor-pointer transition text-xs font-semibold',
-                            form.role === 'employer'
-                                ? 'border-[#00b2e3] bg-[#00b2e3]/10 text-[#00b2e3]'
-                                : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                        ]"
-                    >
-                        <input type="radio" v-model="form.role" value="employer" class="sr-only" />
-                        <span>🏢 Employer / Recruiter</span>
-                    </label>
-                </div>
-            </div>
-
             <!-- Full Name -->
             <div class="grid gap-2">
-                <Label for="name">{{ form.role === 'employer' ? 'Recruiter / Admin Full Name' : 'Full Name' }}</Label>
+                <Label for="name">Full Name</Label>
                 <Input
                     id="name"
                     type="text"
                     required
                     v-model="form.name"
                     autocomplete="name"
-                    :placeholder="form.role === 'employer' ? 'e.g. Jane Doe (HR Lead)' : 'e.g. Ian Chitechi'"
+                    placeholder="e.g. Ian Chitechi"
                 />
                 <InputError :message="form.errors.name" />
             </div>
 
             <!-- Email Address -->
             <div class="grid gap-2">
-                <Label for="email">Work / Personal Email</Label>
+                <Label for="email">Personal / Work Email</Label>
                 <Input
                     id="email"
                     type="email"
@@ -99,53 +67,6 @@ function submit() {
                 <InputError :message="form.errors.email" />
             </div>
 
-            <!-- Additional Organization Fields for Employers -->
-            <div v-if="form.role === 'employer'" class="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4">
-                <h4 class="text-xs font-bold text-[#00b2e3] uppercase tracking-wider">Organization Profile</h4>
-
-                <div class="grid gap-2">
-                    <Label for="org_name">Organization Name</Label>
-                    <Input
-                        id="org_name"
-                        type="text"
-                        required
-                        v-model="form.organization_name"
-                        placeholder="e.g. UNICEF Kenya / Global Tech Corp"
-                    />
-                    <InputError :message="form.errors.organization_name" />
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="grid gap-2">
-                        <Label for="org_code">Code / Acronym</Label>
-                        <Input
-                            id="org_code"
-                            type="text"
-                            required
-                            v-model="form.organization_code"
-                            placeholder="e.g. UNICEF"
-                        />
-                        <InputError :message="form.errors.organization_code" />
-                    </div>
-
-                    <div class="grid gap-2">
-                        <Label for="org_type">Organization Type</Label>
-                        <select
-                            id="org_type"
-                            v-model="form.organization_type"
-                            class="w-full h-9 px-3 py-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00b2e3]"
-                        >
-                            <option value="PRIVATE_COMPANY">Private Sector / Corporate</option>
-                            <option value="NGO">NGO / Non-Governmental Organization</option>
-                            <option value="PARASTATAL">Parastatal / State Enterprise</option>
-                            <option value="GOV_BODY">Government Body / Ministry</option>
-                            <option value="UN_AGENCY">UN Agency / Multilateral</option>
-                            <option value="INTERNATIONAL_ORG">International Organization</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
             <!-- Password -->
             <div class="grid gap-2">
                 <Label for="password">Password</Label>
@@ -155,7 +76,6 @@ function submit() {
                     v-model="form.password"
                     autocomplete="new-password"
                     placeholder="Password"
-                    :passwordrules="passwordRules"
                 />
                 <InputError :message="form.errors.password" />
             </div>
@@ -169,18 +89,17 @@ function submit() {
                     v-model="form.password_confirmation"
                     autocomplete="new-password"
                     placeholder="Confirm password"
-                    :passwordrules="passwordRules"
                 />
                 <InputError :message="form.errors.password_confirmation" />
             </div>
 
             <Button
                 type="submit"
-                class="mt-2 w-full bg-[#00b2e3] hover:bg-[#0099c4] text-white"
+                class="mt-2 w-full font-semibold"
                 :disabled="form.processing"
             >
-                <Spinner v-if="form.processing" />
-                <span>{{ form.role === 'employer' ? 'Register Organization & Account' : 'Create Candidate Account' }}</span>
+                <Spinner v-if="form.processing" class="mr-2" />
+                Register Client Account
             </Button>
         </div>
 
@@ -191,7 +110,7 @@ function submit() {
 
         <a
             href="/auth/google"
-            class="w-full py-2.5 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl shadow-sm transition inline-flex items-center justify-center gap-2.5"
+            class="w-full py-2.5 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl shadow-xs transition inline-flex items-center justify-center gap-2.5"
         >
             <svg class="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

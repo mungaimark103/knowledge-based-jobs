@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
     /**
-     * Get unread notifications for logged in user
+     * Get dynamic notifications for logged-in user
      */
     public function index(Request $request): JsonResponse
     {
@@ -18,11 +18,19 @@ class NotificationController extends Controller
             return response()->json(['unread_count' => 0, 'notifications' => []]);
         }
 
-        $notifications = $user->unreadNotifications()->take(10)->get()->map(function ($n) {
+        $notifications = $user->notifications()->take(15)->get()->map(function ($n) {
+            $data = $n->data ?? [];
+            
+            $jobId = $data['job_id'] ?? null;
+            $url = $data['url'] ?? ($jobId ? route('opportunities.show', ['id' => $jobId]) : route('dashboard'));
+
             return [
                 'id' => $n->id,
-                'type' => $n->type,
-                'data' => $n->data,
+                'title' => $data['title'] ?? "Job Vacancy Alert: {$data['job_title']}",
+                'message' => $data['message'] ?? "A new job opportunity matching your skills has been published.",
+                'type' => $data['type'] ?? 'job',
+                'url' => $url,
+                'read_at' => $n->read_at?->toISOString(),
                 'created_at' => $n->created_at->diffForHumans(),
             ];
         });
@@ -36,11 +44,15 @@ class NotificationController extends Controller
     /**
      * Mark a specific notification as read
      */
-    public function markAsRead(Request $request, string $id): RedirectResponse|JsonResponse
+    public function markAsRead(Request $request, string $id): JsonResponse|RedirectResponse
     {
         $user = $request->user();
         if ($user) {
-            $user->unreadNotifications()->where('id', $id)->first()?->markAsRead();
+            if ($id === 'all') {
+                $user->unreadNotifications->markAsRead();
+            } else {
+                $user->unreadNotifications()->where('id', $id)->first()?->markAsRead();
+            }
         }
 
         if ($request->wantsJson()) {

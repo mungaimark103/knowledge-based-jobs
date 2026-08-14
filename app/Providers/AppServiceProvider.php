@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use App\Services\AuditLogger;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -29,6 +33,22 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->configureDefaults();
+        $this->registerAuditListeners();
+    }
+
+    protected function registerAuditListeners(): void
+    {
+        Event::listen(Login::class, function ($event) {
+            if ($event->user) {
+                AuditLogger::log('LOGIN', "User '{$event->user->name}' ({$event->user->role}) logged in.", null, $event->user);
+            }
+        });
+
+        Event::listen(Logout::class, function ($event) {
+            if ($event->user) {
+                AuditLogger::log('LOGOUT', "User '{$event->user->name}' ({$event->user->role}) logged out.", null, $event->user);
+            }
+        });
     }
 
     /**

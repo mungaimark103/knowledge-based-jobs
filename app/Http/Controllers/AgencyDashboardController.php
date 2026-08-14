@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\CandidateProfile;
 use App\Models\JobApplication;
 use App\Models\MatchingCriterion;
 use App\Models\MatchingRule;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\AuditLogger;
 use App\Services\MatchingEngine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -315,6 +317,39 @@ class AgencyDashboardController extends Controller
         $rule->update(['active' => ! $rule->active]);
 
         $statusStr = $rule->active ? 'activated' : 'deactivated';
+        AuditLogger::log('RULE_UPDATE', "Global IF-THEN Rule '{$rule->name}' was {$statusStr}.");
         return redirect()->back()->with('success', "Global IF-THEN Rule '{$rule->name}' has been {$statusStr}.");
+    }
+
+    public function auditLogs(Request $request): Response|RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user || $user->role !== 'agency_admin') {
+            return redirect()->route('dashboard');
+        }
+
+        $logs = AuditLog::latest()
+            ->paginate(20)
+            ->withQueryString()
+            ->through(fn ($log) => [
+                'id' => $log->id,
+                'user_id' => $log->user_id,
+                'actor_name' => $log->actor_name,
+                'actor_role' => $log->actor_role,
+                'action' => $log->action,
+                'description' => $log->description,
+                'ip_address' => $log->ip_address,
+                'user_agent' => $log->user_agent,
+                'changes' => $log->changes,
+                'created_at' => $log->created_at->format('M d, Y H:i:s'),
+            ]);
+
+        return Inertia::render('Admin/AuditLogs', [
+            'logs' => $logs,
+            'filters' => [
+                'search' => $request->input('search', ''),
+                'action' => $request->input('action', 'ALL'),
+            ],
+        ]);
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployerDashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpportunityController;
+use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
 
@@ -19,20 +20,25 @@ Route::get('/candidate/portal-switch', [EmployerDashboardController::class, 'can
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/candidate/resume', [CandidateProfileController::class, 'uploadResume'])->name('candidate.resume');
+    Route::post('/candidate/document', [CandidateProfileController::class, 'uploadDocument'])->name('candidate.document.upload');
     Route::post('/candidate/profile', [CandidateProfileController::class, 'updateStructuredProfile'])->name('candidate.profile.update');
     Route::get('/candidate/resume/view', [CandidateProfileController::class, 'viewResume'])->name('candidate.resume.view');
     Route::get('/candidate/resume/download', [CandidateProfileController::class, 'downloadResume'])->name('candidate.resume.download');
+    Route::get('/candidate/document/view/{type}', [CandidateProfileController::class, 'viewDocument'])->name('candidate.document.view');
+    Route::get('/candidate/document/download/{type}', [CandidateProfileController::class, 'downloadDocument'])->name('candidate.document.download');
+    
     Route::get('/employer/dashboard', [EmployerDashboardController::class, 'index'])->name('employer.dashboard');
     Route::post('/employer/organization', [EmployerDashboardController::class, 'updateOrganization'])->name('employer.organization.update');
     Route::post('/employer/jobs', [EmployerDashboardController::class, 'storeJob'])->name('employer.jobs.store');
     Route::get('/opportunities/{id}/applicants', [OpportunityController::class, 'applicants'])->name('opportunities.applicants');
 
-    // Candidate In-App Notifications
+    // Client In-App Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
-    // Agency Super Admin Subsystem
+    // Agency Super Admin Subsystem & Audit Trail
     Route::get('/admin/dashboard', [AgencyDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/audit', [AgencyDashboardController::class, 'auditLogs'])->name('admin.audit.index');
     Route::patch('/admin/organizations/{id}/verify', [AgencyDashboardController::class, 'toggleVerifyOrganization'])->name('admin.organizations.verify');
     Route::patch('/admin/candidates/{id}/verify', [AgencyDashboardController::class, 'toggleVerifyCandidate'])->name('admin.candidates.verify');
     Route::post('/admin/candidates/proxy', [AgencyDashboardController::class, 'createProxyCandidate'])->name('admin.candidates.proxy');
