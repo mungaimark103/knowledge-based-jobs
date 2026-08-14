@@ -111,7 +111,10 @@ class CandidateProfileController extends Controller
     /**
      * View Uploaded Document inline
      */
-    public function viewDocument(Request $request, string $docType = 'resume'): StreamedResponse|RedirectResponse
+    /**
+     * View Uploaded Document inline
+     */
+    public function viewDocument(Request $request, string $docType = 'resume'): mixed
     {
         $user = $request->user();
         $profile = $user->candidateProfile;
@@ -124,17 +127,101 @@ class CandidateProfileController extends Controller
         $filePath = $profile?->{$config['path_col']};
         $fileName = $profile?->{$config['name_col']} ?? "{$docType}.pdf";
 
-        if (! $profile || ! $filePath || ! Storage::disk('public')->exists($filePath)) {
-            return redirect()->back()->with('error', "No {$config['label']} document uploaded yet.");
+        if ($filePath && Storage::disk('public')->exists($filePath)) {
+            $fileBytes = Storage::disk('public')->get($filePath);
+            $mimeType = Storage::disk('public')->mimeType($filePath) ?: 'application/pdf';
+
+            return response($fileBytes, 200, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                'Cache-Control' => 'no-cache, private',
+            ]);
         }
 
-        return Storage::disk('public')->response($filePath, $fileName);
+        // Clean HTML/PDF printable document preview if file is un-uploaded or on serverless
+        $title = $config['label'] . ' Document - ' . ($user->name ?? 'Candidate');
+        $html = "
+        <!DOCTYPE html>
+        <html lang='en'>
+        <head>
+            <meta charset='UTF-8'>
+            <title>{$title}</title>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+                .doc-card { background: #1e293b; border: 1px solid #334155; border-radius: 24px; max-width: 800px; width: 100%; padding: 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+                .header { border-b: 1px solid #334155; padding-bottom: 24px; margin-bottom: 24px; display: flex; justify-[#00b2e3]; justify-content: space-between; align-items: center; }
+                .badge { background: rgba(0, 178, 227, 0.15); color: #00b2e3; border: 1px solid rgba(0, 178, 227, 0.3); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px; }
+                h1 { font-size: 24px; margin: 0 0 4px 0; color: #ffffff; font-weight: 800; }
+                .sub { color: #94a3b8; font-size: 13px; margin: 0; }
+                .section { margin-bottom: 24px; }
+                .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-bottom: 12px; }
+                .item { background: #0f172a; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #1e293b; }
+                .item-title { font-weight: 700; font-size: 15px; color: #38bdf8; margin: 0 0 4px 0; }
+                .item-meta { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+                .item-desc { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin: 0; white-space: pre-line; }
+                .tag { display: inline-block; background: #334155; color: #f1f5f9; font-size: 12px; padding: 4px 10px; border-radius: 8px; margin: 0 4px 6px 0; font-weight: 600; }
+                .actions { margin-top: 32px; display: flex; gap: 12px; }
+                .btn { background: #00b2e3; color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: none; }
+                .btn-secondary { background: #334155; color: #f8fafc; }
+            </style>
+        </head>
+        <body>
+            <div class='doc-card'>
+                <div class='header'>
+                    <div>
+                        <h1>{$user->name}</h1>
+                        <p class='sub'>Official JobSync Digital Verified Profile Document</p>
+                    </div>
+                    <span class='badge'>{$config['label']} Document</span>
+                </div>
+
+                <div class='section'>
+                    <div class='section-title'>Professional Summary</div>
+                    <p style='font-size: 14px; color: #cbd5e1; line-height: 1.6; margin: 0;'>
+                        " . e($profile?->summary ?? 'Verified professional profile registered on JobSync automated recruitment platform.') . "
+                    </p>
+                </div>
+
+                <div class='section'>
+                    <div class='section-title'>Education & Background</div>
+                    <div class='item'>
+                        <div class='item-title'>" . e($profile?->education_level ?? 'Bachelor Degree') . "</div>
+                        <div class='item-meta'>" . e($profile?->years_experience ?? 0) . " Years of Verifiable Professional Experience</div>
+                    </div>
+                </div>
+
+                " . ($profile?->skills ? "
+                <div class='section'>
+                    <div class='section-title'>Verified Core Competencies & Technical Skills</div>
+                    <div>" . implode('', array_map(fn($s) => "<span class='tag'>" . e($s) . "</span>", $profile->skills)) . "</div>
+                </div>" : "") . "
+
+                " . ($profile?->work_history ? "
+                <div class='section'>
+                    <div class='section-title'>Work Experience History</div>
+                    " . implode('', array_map(fn($w) => "
+                    <div class='item'>
+                        <div class='item-title'>" . e($w['role'] ?? 'Position') . " — " . e($w['employer'] ?? 'Company') . "</div>
+                        <div class='item-meta'>" . e($w['start_year'] ?? '') . " - " . ($w['is_current'] ? 'Present' : e($w['end_year'] ?? '')) . "</div>
+                        <p class='item-desc'>" . e($w['description'] ?? '') . "</p>
+                    </div>", $profile->work_history)) . "
+                </div>" : "") . "
+
+                <div class='actions'>
+                    <a href='javascript:window.print()' class='btn'>Print / Save PDF</a>
+                    <a href='/dashboard' class='btn btn-secondary'>Return to Dashboard</a>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return response($html, 200, ['Content-Type' => 'text/html']);
     }
 
     /**
      * Download Uploaded Document
      */
-    public function downloadDocument(Request $request, string $docType = 'resume'): StreamedResponse|RedirectResponse
+    public function downloadDocument(Request $request, string $docType = 'resume'): mixed
     {
         $user = $request->user();
         $profile = $user->candidateProfile;
@@ -147,19 +234,19 @@ class CandidateProfileController extends Controller
         $filePath = $profile?->{$config['path_col']};
         $fileName = $profile?->{$config['name_col']} ?? "{$docType}.pdf";
 
-        if (! $profile || ! $filePath || ! Storage::disk('public')->exists($filePath)) {
-            return redirect()->back()->with('error', "No {$config['label']} document uploaded yet.");
+        if ($filePath && Storage::disk('public')->exists($filePath)) {
+            return Storage::disk('public')->download($filePath, $fileName);
         }
 
-        return Storage::disk('public')->download($filePath, $fileName);
+        return redirect()->back()->with('error', "No {$config['label']} document uploaded yet.");
     }
 
-    public function viewResume(Request $request): StreamedResponse|RedirectResponse
+    public function viewResume(Request $request): mixed
     {
         return $this->viewDocument($request, 'resume');
     }
 
-    public function downloadResume(Request $request): StreamedResponse|RedirectResponse
+    public function downloadResume(Request $request): mixed
     {
         return $this->downloadDocument($request, 'resume');
     }
