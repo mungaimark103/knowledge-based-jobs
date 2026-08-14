@@ -57,20 +57,44 @@ function submitDeleteAccount() {
                     >
                 </DialogTrigger>
                 <DialogContent>
-                    <form @submit.prevent="submitDeleteAccount" class="space-y-6">
+                    <form
+                        @submit.prevent="submitDeleteAccount"
+                        class="space-y-6"
+                    >
                         <DialogHeader class="space-y-3">
                             <DialogTitle
                                 >Are you sure you want to delete your
                                 account?</DialogTitle
                             >
                             <DialogDescription v-if="user?.google_id">
-                                🔒 <strong>Google Single Sign-On Account:</strong> You are logged in via Google OAuth (<code>{{ user?.email }}</code>). No password is required. Click <strong>Delete account</strong> below to confirm permanent deletion of your profile, resume files, and applications.
+                                🔒
+                                <strong>Google Single Sign-On Account:</strong>
+                                You are logged in via Google OAuth (<code>{{
+                                    user?.email
+                                }}</code
+                                >). No password is required. Click
+                                <strong>Delete account</strong> below to confirm
+                                permanent deletion of your profile, resume
+                                files, and applications.
                             </DialogDescription>
-                            <DialogDescription v-else-if="user?.role === 'employer'">
-                                ⚠️ <strong>Employer Account Deletion:</strong> Deleting this employer account will permanently delete your organization profile and all posted job vacancies. Applicants will see existing applications marked as <em>"Job No Longer Available"</em>. Please enter your password to confirm.
+                            <DialogDescription
+                                v-else-if="user?.role === 'employer'"
+                            >
+                                ⚠️
+                                <strong>Employer Account Deletion:</strong>
+                                Deleting this employer account will permanently
+                                delete your organization profile and all posted
+                                job vacancies. Applicants will see existing
+                                applications marked as
+                                <em>"Job No Longer Available"</em>. Please enter
+                                your password to confirm.
                             </DialogDescription>
                             <DialogDescription v-else>
-                                Once your account is deleted, all of your profile details, resume files, and applications will be permanently removed. Please enter your password to confirm you would like to permanently delete your account.
+                                Once your account is deleted, all of your
+                                profile details, resume files, and applications
+                                will be permanently removed. Please enter your
+                                password to confirm you would like to
+                                permanently delete your account.
                             </DialogDescription>
                         </DialogHeader>
 

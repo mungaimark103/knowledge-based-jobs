@@ -1,7 +1,10 @@
-import SocialiteController from './SocialiteController'
+import SocialiteController from './SocialiteController';
 
 const Auth = {
-    SocialiteController: Object.assign(SocialiteController, SocialiteController),
-}
+    SocialiteController: Object.assign(
+        SocialiteController,
+        SocialiteController,
+    ),
+};
 
-export default Auth
+export default Auth;

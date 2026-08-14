@@ -75,7 +75,10 @@ function submitProfile() {
             </div>
 
             <div class="flex items-center gap-4">
-                <Button :disabled="form.processing" data-test="update-profile-button">
+                <Button
+                    :disabled="form.processing"
+                    data-test="update-profile-button"
+                >
                     Save
                 </Button>
             </div>

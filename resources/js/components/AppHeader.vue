@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { Sparkles, Building2, BookOpen, Folder, LayoutGrid, Menu, Search } from '@lucide/vue';
+import { Sparkles, Building2, LayoutGrid, Menu, Search } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
@@ -69,7 +69,7 @@ const rightNavItems: NavItem[] = [
     {
         title: 'Employer Portal',
         href: '/employer/portal-switch',
-        icon: Building2
+        icon: Building2,
     },
 ];
 </script>
@@ -123,7 +123,9 @@ const rightNavItems: NavItem[] = [
                                         {{ item.title }}
                                     </Link>
                                 </nav>
-                                <div class="flex flex-col space-y-3 pt-3 border-t border-sidebar-border">
+                                <div
+                                    class="flex flex-col space-y-3 border-t border-sidebar-border pt-3"
+                                >
                                     <Link
                                         v-for="item in rightNavItems"
                                         :key="item.title"

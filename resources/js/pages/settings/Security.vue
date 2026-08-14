@@ -33,7 +33,8 @@ function submitPasswordUpdate() {
     form.put('/settings/security', {
         preserveScroll: true,
         onSuccess: () => form.reset(),
-        onError: () => form.reset('password', 'password_confirmation', 'current_password'),
+        onError: () =>
+            form.reset('password', 'password_confirmation', 'current_password'),
     });
 }
 </script>

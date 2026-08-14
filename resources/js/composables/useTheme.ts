@@ -5,6 +5,7 @@ const isDark = ref(false);
 export function useTheme() {
     const toggleTheme = () => {
         isDark.value = !isDark.value;
+
         if (isDark.value) {
             document.documentElement.classList.add('dark');
             localStorage.setItem('theme', 'dark');
@@ -16,7 +17,12 @@ export function useTheme() {
 
     const initTheme = () => {
         const saved = localStorage.getItem('theme');
-        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+
+        if (
+            saved === 'dark' ||
+            (!saved &&
+                window.matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
             isDark.value = true;
             document.documentElement.classList.add('dark');
         } else {
