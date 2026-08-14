@@ -10,6 +10,8 @@ use App\Models\MatchingCriterion;
 use App\Models\MatchingRule;
 use App\Models\Organization;
 use App\Models\User;
+use App\Notifications\NewJobPostingNotification;
+use App\Services\MatchingEngine;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -172,7 +174,7 @@ class MatchingCriteriaSeeder extends Seeder
 
         // 3. Seed Specific Safaricom PLC Positions (Entry Level & Professional set to English)
         $safaricomOrg = $organizations['SAFARICOM'];
-        JobPosting::create([
+        $safaricomJob1 = JobPosting::create([
             'organization_id' => $safaricomOrg->id,
             'title' => 'Customer Experience & Digital Support Specialist',
             'grade' => 'Entry Level',
@@ -184,7 +186,7 @@ class MatchingCriteriaSeeder extends Seeder
             'required_languages' => ['English'],
         ]);
 
-        JobPosting::create([
+        $safaricomJob2 = JobPosting::create([
             'organization_id' => $safaricomOrg->id,
             'title' => 'Senior M-PESA Backend & Cloud Engineer',
             'grade' => 'Professional',
@@ -198,7 +200,7 @@ class MatchingCriteriaSeeder extends Seeder
 
         // Seed Employment Agencies Job Vacancies
         $cssOrg = $organizations['CSS'];
-        JobPosting::create([
+        $cssJob = JobPosting::create([
             'organization_id' => $cssOrg->id,
             'title' => 'HR & Talent Acquisition Lead (Placement)',
             'grade' => 'Professional',
@@ -211,7 +213,7 @@ class MatchingCriteriaSeeder extends Seeder
         ]);
 
         $summitOrg = $organizations['SUMMIT'];
-        JobPosting::create([
+        $summitJob = JobPosting::create([
             'organization_id' => $summitOrg->id,
             'title' => 'Senior Financial Controller (Executive Placement)',
             'grade' => 'Senior Professional',
@@ -224,7 +226,7 @@ class MatchingCriteriaSeeder extends Seeder
         ]);
 
         $flexiOrg = $organizations['FLEXI'];
-        JobPosting::create([
+        $flexiJob = JobPosting::create([
             'organization_id' => $flexiOrg->id,
             'title' => 'IT Operations & Infrastructure Manager',
             'grade' => 'Mid Level / Associate',
@@ -237,10 +239,11 @@ class MatchingCriteriaSeeder extends Seeder
         ]);
 
         // Seed additional general jobs
+        $allGeneralJobs = [];
         foreach ($organizations as $code => $org) {
             if (in_array($code, ['SAFARICOM', 'CSS', 'SUMMIT', 'FLEXI'])) continue;
 
-            JobPosting::create([
+            $allGeneralJobs[$code] = JobPosting::create([
                 'organization_id' => $org->id,
                 'title' => 'Senior Officer & Operations Specialist (' . $code . ')',
                 'grade' => 'Professional',
@@ -254,7 +257,7 @@ class MatchingCriteriaSeeder extends Seeder
         }
 
         // 4. Seed Main Client (Ian Chitechi)
-        $clientUser = User::create([
+        $mainClientUser = User::create([
             'name' => 'Ian Chitechi',
             'email' => 'client@job-sync.com',
             'password' => Hash::make('password'),
@@ -262,7 +265,7 @@ class MatchingCriteriaSeeder extends Seeder
         ]);
 
         CandidateProfile::create([
-            'user_id' => $clientUser->id,
+            'user_id' => $mainClientUser->id,
             'education_level' => 'Master\'s Degree',
             'years_experience' => 6,
             'field_experience_months' => 72,
@@ -308,6 +311,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 2,
                 'skills' => ['React', 'JavaScript', 'HTML', 'CSS', 'Tailwind'],
                 'reliability' => 82.0,
+                'applied_job' => $safaricomJob2,
+                'status' => 'applied',
             ],
             2 => [
                 'name' => 'DevOps & Cloud Engineer',
@@ -315,6 +320,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 5,
                 'skills' => ['AWS', 'Docker', 'DevOps', 'System Architecture', 'Linux'],
                 'reliability' => 94.0,
+                'applied_job' => $flexiJob,
+                'status' => 'hired',
             ],
             3 => [
                 'name' => 'HR & Placement Lead',
@@ -322,6 +329,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 7,
                 'skills' => ['Talent Acquisition', 'HR Strategy', 'Contract Law', 'Performance Management'],
                 'reliability' => 91.0,
+                'applied_job' => $cssJob,
+                'status' => 'shortlisted',
             ],
             4 => [
                 'name' => 'Senior Financial Controller',
@@ -329,6 +338,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 9,
                 'skills' => ['Financial Accounting', 'Auditing', 'IFRS', 'Corporate Taxation'],
                 'reliability' => 96.0,
+                'applied_job' => $summitJob,
+                'status' => 'interview',
             ],
             5 => [
                 'name' => 'Customer Care & M-PESA Support Specialist',
@@ -336,6 +347,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 2,
                 'skills' => ['Customer Support', 'Communication', 'M-PESA', 'Digital Troubleshooting'],
                 'reliability' => 89.5,
+                'applied_job' => $safaricomJob1,
+                'status' => 'in_review',
             ],
             6 => [
                 'name' => 'Senior PHP & Fintech Engineer',
@@ -343,6 +356,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 6,
                 'skills' => ['PHP', 'Laravel', 'Microservices', 'AWS', 'SQL', 'Fintech Security'],
                 'reliability' => 95.0,
+                'applied_job' => $safaricomJob2,
+                'status' => 'shortlisted',
             ],
             7 => [
                 'name' => 'IT Infrastructure Specialist',
@@ -350,6 +365,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 4,
                 'skills' => ['AWS', 'Docker', 'System Architecture', 'DevOps', 'Cybersecurity'],
                 'reliability' => 86.0,
+                'applied_job' => $flexiJob,
+                'status' => 'in_review',
             ],
             8 => [
                 'name' => 'Data Scientist & Business Analyst',
@@ -357,6 +374,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 3,
                 'skills' => ['Data Analysis', 'Python', 'SQL', 'Project Management', 'Communication'],
                 'reliability' => 88.5,
+                'applied_job' => $allGeneralJobs['GOOGLE'] ?? $safaricomJob1,
+                'status' => 'shortlisted',
             ],
             9 => [
                 'name' => 'Agile Project Manager',
@@ -364,6 +383,8 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 6,
                 'skills' => ['Project Management', 'Data Analysis', 'Communication', 'Agile'],
                 'reliability' => 90.0,
+                'applied_job' => $allGeneralJobs['UNDP'] ?? $safaricomJob1,
+                'status' => 'interview',
             ],
             10 => [
                 'name' => 'Executive Director & Strategy Consultant',
@@ -371,8 +392,24 @@ class MatchingCriteriaSeeder extends Seeder
                 'experience' => 12,
                 'skills' => ['HR Strategy', 'Financial Accounting', 'Project Management', 'Communication'],
                 'reliability' => 98.0,
+                'applied_job' => $summitJob,
+                'status' => 'offered',
             ],
         ];
+
+        $matchingEngine = new MatchingEngine();
+
+        // Also evaluate main client Ian Chitechi for Safaricom Senior Backend Engineer
+        $ianEval = $matchingEngine->evaluate($mainClientUser, $safaricomJob2);
+        JobApplication::create([
+            'candidate_id' => $mainClientUser->id,
+            'job_posting_id' => $safaricomJob2->id,
+            'status' => 'shortlisted',
+            'score' => $ianEval['score'],
+            'kbs_status' => $ianEval['status'],
+            'kbs_evaluation' => $ianEval,
+            'applied_at' => now()->subDays(2),
+        ]);
 
         for ($i = 1; $i <= 10; $i++) {
             $pData = $diverseProfiles[$i];
@@ -384,7 +421,7 @@ class MatchingCriteriaSeeder extends Seeder
                 'role' => 'candidate',
             ]);
 
-            CandidateProfile::create([
+            $cp = CandidateProfile::create([
                 'user_id' => $u->id,
                 'education_level' => $pData['education'],
                 'years_experience' => $pData['experience'],
@@ -393,6 +430,23 @@ class MatchingCriteriaSeeder extends Seeder
                 'reliability_score' => $pData['reliability'],
                 'summary' => "Professional profile for {$pData['name']} specializing in " . implode(', ', $pData['skills']) . '.',
             ]);
+
+            // Create initial application and compute match score
+            $jobToApply = $pData['applied_job'];
+            $eval = $matchingEngine->evaluate($u, $jobToApply);
+
+            JobApplication::create([
+                'candidate_id' => $u->id,
+                'job_posting_id' => $jobToApply->id,
+                'status' => $pData['status'],
+                'score' => $eval['score'],
+                'kbs_status' => $eval['status'],
+                'kbs_evaluation' => $eval,
+                'applied_at' => now()->subDays(rand(1, 10)),
+            ]);
+
+            // Notify user of job match
+            $u->notify(new NewJobPostingNotification($jobToApply));
         }
 
         // Seed initial audit log entries
@@ -401,7 +455,7 @@ class MatchingCriteriaSeeder extends Seeder
             'actor_name' => $agencyAdmin->name,
             'actor_role' => $agencyAdmin->role,
             'action' => 'SYSTEM_INIT',
-            'description' => 'JobSync Platform initialized with 3-Actor RBAC and Audit Logging enabled.',
+            'description' => 'JobSync Platform initialized with 3-Actor RBAC, dynamic match evaluations, and audit logging.',
             'ip_address' => '127.0.0.1',
         ]);
     }
