@@ -632,10 +632,10 @@ function getPipelineStage(status: string) {
                                     }}</span
                                 >
                                 <a
-                                    :href="'/candidate/document/view/resume'"
-                                    target="_blank"
+                                    :href="'/candidate/document/download/resume'"
+                                    download
                                     class="font-semibold text-[#00b2e3] hover:underline"
-                                    >View</a
+                                    >Download</a
                                 >
                             </div>
                             <label
@@ -695,10 +695,10 @@ function getPipelineStage(status: string) {
                                     }}</span
                                 >
                                 <a
-                                    :href="'/candidate/document/view/recommendation_letter'"
-                                    target="_blank"
+                                    :href="'/candidate/document/download/recommendation_letter'"
+                                    download
                                     class="font-semibold text-[#00b2e3] hover:underline"
-                                    >View</a
+                                    >Download</a
                                 >
                             </div>
                             <label
@@ -761,10 +761,10 @@ function getPipelineStage(status: string) {
                                     }}</span
                                 >
                                 <a
-                                    :href="'/candidate/document/view/references_doc'"
-                                    target="_blank"
+                                    :href="'/candidate/document/download/references_doc'"
+                                    download
                                     class="font-semibold text-[#00b2e3] hover:underline"
-                                    >View</a
+                                    >Download</a
                                 >
                             </div>
                             <label
@@ -827,10 +827,10 @@ function getPipelineStage(status: string) {
                                     }}</span
                                 >
                                 <a
-                                    :href="'/candidate/document/view/portfolio_doc'"
-                                    target="_blank"
+                                    :href="'/candidate/document/download/portfolio_doc'"
+                                    download
                                     class="font-semibold text-[#00b2e3] hover:underline"
-                                    >View</a
+                                    >Download</a
                                 >
                             </div>
                             <label
@@ -893,10 +893,10 @@ function getPipelineStage(status: string) {
                                     }}</span
                                 >
                                 <a
-                                    :href="'/candidate/document/view/transcripts_doc'"
-                                    target="_blank"
+                                    :href="'/candidate/document/download/transcripts_doc'"
+                                    download
                                     class="font-semibold text-[#00b2e3] hover:underline"
-                                    >View</a
+                                    >Download</a
                                 >
                             </div>
                             <label
