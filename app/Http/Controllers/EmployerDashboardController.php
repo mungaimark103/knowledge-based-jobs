@@ -243,4 +243,37 @@ class EmployerDashboardController extends Controller
 
         return redirect()->back()->with('success', "Job Vacancy '{$validated['title']}' created and matching candidates notified!");
     }
+
+    /**
+     * Delete a Job Vacancy Ad and associated application records
+     */
+    public function destroyJob(Request $request, int $id): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user || $user->role !== 'employer') {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $organization = Organization::where('user_id', $user->id)->firstOrFail();
+        $jobPosting = JobPosting::where('id', $id)
+            ->where('organization_id', $organization->id)
+            ->firstOrFail();
+
+        $title = $jobPosting->title;
+        
+        // Delete job posting and cascade delete job_applications
+        $jobPosting->delete();
+
+        // Audit Trail entry
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'actor_name' => $user->name,
+            'actor_role' => $user->role,
+            'action' => 'DELETE_JOB_POSTING',
+            'description' => "Employer '{$user->name}' deleted job vacancy posting '{$title}' (ID: {$id}).",
+            'ip_address' => $request->ip() ?? '127.0.0.1',
+        ]);
+
+        return redirect()->back()->with('success', "Job vacancy '{$title}' deleted successfully!");
+    }
 }

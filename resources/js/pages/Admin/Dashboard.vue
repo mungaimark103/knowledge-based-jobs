@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
 import {
     ShieldCheck,
     Building2,
@@ -17,6 +17,7 @@ import {
     UserPlus,
     Filter,
     Menu,
+    Trash2,
 } from '@lucide/vue';
 import { ref, computed } from 'vue';
 
@@ -84,6 +85,7 @@ interface Rule {
 
 interface AuditApplication {
     id: number;
+    job_posting_id?: number;
     candidate_name: string;
     job_title: string;
     organization_name: string;
@@ -206,6 +208,14 @@ function updateCriteriaWeights() {
     criteriaForm.post('/admin/criteria/weights', {
         preserveScroll: true,
     });
+}
+
+function deleteJobByAdmin(id: number, title: string) {
+    if (confirm(`Agency Admin Control: Are you sure you want to delete the vacancy posting '${title}'?`)) {
+        router.delete(`/admin/jobs/${id}`, {
+            preserveScroll: true,
+        });
+    }
 }
 </script>
 
@@ -564,7 +574,17 @@ function updateCriteriaWeights() {
                                     <td
                                         class="px-3 py-3 font-sans font-medium text-slate-700 dark:text-slate-300"
                                     >
-                                        {{ app.job_title }}
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span>{{ app.job_title }}</span>
+                                            <button
+                                                v-if="app.job_posting_id"
+                                                @click="deleteJobByAdmin(app.job_posting_id, app.job_title)"
+                                                class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-rose-500 hover:text-rose-600"
+                                                title="Delete Vacancy Posting"
+                                            >
+                                                <Trash2 class="h-3 w-3" /> Delete
+                                            </button>
+                                        </div>
                                     </td>
                                     <td
                                         class="px-3 py-3 font-sans text-slate-500"

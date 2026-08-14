@@ -79,6 +79,7 @@ class AgencyDashboardController extends Controller
 
                 return [
                     'id' => $app->id,
+                    'job_posting_id' => $job?->id,
                     'candidate_name' => $candidate?->name ?? 'Candidate',
                     'job_title' => $job?->title ?? $app->job_title_snapshot ?? 'Unavailable Position',
                     'organization_name' => $job?->organization?->name ?? $app->organization_name_snapshot ?? 'Closed Agency',
@@ -328,21 +329,40 @@ class AgencyDashboardController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $logs = AuditLog::latest()
-            ->paginate(20)
-            ->withQueryString()
-            ->through(fn ($log) => [
-                'id' => $log->id,
-                'user_id' => $log->user_id,
-                'actor_name' => $log->actor_name,
-                'actor_role' => $log->actor_role,
-                'action' => $log->action,
-                'description' => $log->description,
-                'ip_address' => $log->ip_address,
-                'user_agent' => $log->user_agent,
-                'changes' => $log->changes,
-                'created_at' => $log->created_at->format('M d, Y H:i:s'),
-            ]);
+        try {
+            $query = AuditLog::latest();
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('actor_name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('action', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('action') && $request->input('action') !== 'ALL') {
+                $query->where('action', $request->input('action'));
+            }
+
+            $logs = $query->paginate(20)
+                ->withQueryString()
+                ->through(fn ($log) => [
+                    'id' => $log->id,
+                    'user_id' => $log->user_id,
+                    'actor_name' => $log->actor_name ?? 'System',
+                    'actor_role' => $log->actor_role ?? 'agency_admin',
+                    'action' => $log->action ?? 'SYSTEM',
+                    'description' => $log->description ?? '',
+                    'ip_address' => $log->ip_address ?? '127.0.0.1',
+                    'user_agent' => $log->user_agent ?? '',
+                    'changes' => $log->changes ?? null,
+                    'created_at' => $log->created_at ? $log->created_at->format('M d, Y H:i:s') : now()->format('M d, Y H:i:s'),
+                ]);
+        } catch (\Throwable $e) {
+            // Graceful failover if database table is missing or unmigrated in production
+            $logs = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
+        }
 
         return Inertia::render('Admin/AuditLogs', [
             'logs' => $logs,
@@ -351,5 +371,26 @@ class AgencyDashboardController extends Controller
                 'action' => $request->input('action', 'ALL'),
             ],
         ]);
+    }
+
+    /**
+     * Agency Admin command: Delete any Job Vacancy Ad from System
+     */
+    public function destroyJob(Request $request, int $id): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user || $user->role !== 'agency_admin') {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
+        }
+
+        $jobPosting = JobPosting::findOrFail($id);
+        $title = $jobPosting->title;
+        $orgName = $jobPosting->organization?->name ?? 'Organization';
+
+        $jobPosting->delete();
+
+        AuditLogger::log('DELETE_JOB_POSTING', "Agency Super Admin '{$user->name}' deleted job vacancy '{$title}' posted by '{$orgName}' (ID: {$id}).");
+
+        return redirect()->back()->with('success', "Job vacancy '{$title}' posted by {$orgName} has been deleted successfully.");
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
 import {
     Briefcase,
     Users,
@@ -161,6 +161,14 @@ function submitJobPost() {
             jobForm.custom_rules = [];
         },
     });
+}
+
+function deleteJob(id: number, title: string) {
+    if (confirm(`Are you sure you want to delete the job vacancy '${title}'? This action will also delete all associated candidate applications.`)) {
+        router.delete(`/employer/jobs/${id}`, {
+            preserveScroll: true,
+        });
+    }
 }
 </script>
 
@@ -572,13 +580,22 @@ function submitJobPost() {
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-right">
-                                    <Link
-                                        :href="`/opportunities/${job.id}/applicants`"
-                                        class="inline-flex items-center gap-1.5 rounded-xl bg-[#00b2e3]/10 px-3.5 py-1.5 text-xs font-semibold text-[#00b2e3] transition hover:bg-[#00b2e3]/20"
-                                    >
-                                        Inspect Applicants Matrix
-                                        <ExternalLink class="h-3.5 w-3.5" />
-                                    </Link>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <Link
+                                            :href="`/opportunities/${job.id}/applicants`"
+                                            class="inline-flex items-center gap-1.5 rounded-xl bg-[#00b2e3]/10 px-3.5 py-1.5 text-xs font-semibold text-[#00b2e3] transition hover:bg-[#00b2e3]/20"
+                                        >
+                                            Inspect Applicants Matrix
+                                            <ExternalLink class="h-3.5 w-3.5" />
+                                        </Link>
+                                        <button
+                                            @click="deleteJob(job.id, job.title)"
+                                            class="inline-flex items-center gap-1 rounded-xl bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-500/20 dark:text-rose-400"
+                                            title="Delete Job Posting"
+                                        >
+                                            <Trash2 class="h-3.5 w-3.5" /> Delete
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

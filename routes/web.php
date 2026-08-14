@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/employer/dashboard', [EmployerDashboardController::class, 'index'])->name('employer.dashboard');
     Route::post('/employer/organization', [EmployerDashboardController::class, 'updateOrganization'])->name('employer.organization.update');
     Route::post('/employer/jobs', [EmployerDashboardController::class, 'storeJob'])->name('employer.jobs.store');
+    Route::delete('/employer/jobs/{id}', [EmployerDashboardController::class, 'destroyJob'])->name('employer.jobs.destroy');
     Route::get('/opportunities/{id}/applicants', [OpportunityController::class, 'applicants'])->name('opportunities.applicants');
 
     // Client In-App Notifications
@@ -39,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Agency Super Admin Subsystem & Audit Trail
     Route::get('/admin/dashboard', [AgencyDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/audit', [AgencyDashboardController::class, 'auditLogs'])->name('admin.audit.index');
+    Route::delete('/admin/jobs/{id}', [AgencyDashboardController::class, 'destroyJob'])->name('admin.jobs.destroy');
     Route::patch('/admin/organizations/{id}/verify', [AgencyDashboardController::class, 'toggleVerifyOrganization'])->name('admin.organizations.verify');
     Route::patch('/admin/candidates/{id}/verify', [AgencyDashboardController::class, 'toggleVerifyCandidate'])->name('admin.candidates.verify');
     Route::post('/admin/candidates/proxy', [AgencyDashboardController::class, 'createProxyCandidate'])->name('admin.candidates.proxy');
