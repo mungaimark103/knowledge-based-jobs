@@ -11,8 +11,8 @@ This project runs entirely in Docker via Laravel Sail, so you don't need PHP, Co
 
 ```bash
 # 1. Clone the repo
-git clone <REPO_URL>
-cd kbsystem
+git clone https://github.com/mungaimark103/knowledge-based-jobs.git
+cd knowledge-based-jobs
 
 # 2. Copy the environment file
 cp .env.example .env
@@ -39,7 +39,7 @@ docker run --rm \
 ./vendor/bin/sail npm run build
 ```
 
-Visit **http://localhost:8080** (see note on ports below).
+Link http://localhost
 
 ## Daily development
 

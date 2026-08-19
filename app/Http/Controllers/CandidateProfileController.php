@@ -114,6 +114,10 @@ class CandidateProfileController extends Controller
     public function viewDocument(Request $request, string $docType = 'resume'): mixed
     {
         $user = $request->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
         $profile = $user->candidateProfile;
 
         if (! isset($this->docTypes[$docType])) {
@@ -129,11 +133,15 @@ class CandidateProfileController extends Controller
             $fileName .= '.pdf';
         }
 
-        if ($filePath && Storage::disk('public')->exists($filePath)) {
-            return Storage::disk('public')->download($filePath, $fileName, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-            ]);
+        try {
+            if ($filePath && Storage::disk('public')->exists($filePath)) {
+                return Storage::disk('public')->download($filePath, $fileName, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Storage failover on serverless environments
         }
 
         // Return genuine .pdf binary file stream for test/unuploaded candidate profiles so browser downloads .pdf (never .html)
@@ -153,63 +161,36 @@ class CandidateProfileController extends Controller
      */
     private function generatePdfResponse(string $candidateName, string $docLabel, ?CandidateProfile $profile): \Symfony\Component\HttpFoundation\Response
     {
-        $cleanName = preg_replace('/[^A-Za-z0-9_]/', '_', $candidateName);
-        $filename = "{$cleanName}_{$docLabel}.pdf";
+        $cleanCandidate = preg_replace('/[^A-Za-z0-9_\s]/', '', $candidateName) ?: 'Candidate';
+        $cleanFilename = preg_replace('/[^A-Za-z0-9_]/', '_', $cleanCandidate) . "_{$docLabel}.pdf";
 
-        $summary = substr(preg_replace('/[^\x20-\x7E]/', '', $profile?->summary ?? 'JobSync Verified Candidate Profile Document.'), 0, 150);
-        $edu = preg_replace('/[^\x20-\x7E]/', '', $profile?->education_level ?? 'Bachelor Degree');
+        $summary = substr(preg_replace('/[^A-Za-z0-9_\s\.\,\-]/', '', $profile?->summary ?? 'JobSync Verified Candidate Profile Document.'), 0, 120);
+        $edu = preg_replace('/[^A-Za-z0-9_\s\.\,\-]/', '', $profile?->education_level ?? 'Bachelor Degree');
         $exp = ($profile?->years_experience ?? 0) . ' Years Experience';
-        $skills = implode(', ', array_slice($profile?->skills ?? ['PHP', 'Laravel', 'Vue.js'], 0, 5));
+        $skills = implode(', ', array_slice($profile?->skills ?? ['PHP', 'Laravel', 'Vue.js'], 0, 4));
 
-        $pdfContent = "%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
-endobj
-4 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
-endobj
-5 0 obj
-<< /Length 350 >>
-stream
-BT
-/F1 18 Tf
-50 720 Td
-(" . addslashes($candidateName) . " - " . addslashes($docLabel) . ") Tj
-/F1 12 Tf
-0 -30 Td
-(Official JobSync Verified Profile Document) Tj
-0 -30 Td
-(Education: " . addslashes($edu) . " | Experience: " . addslashes($exp) . ") Tj
-0 -30 Td
-(Skills: " . addslashes($skills) . ") Tj
-0 -30 Td
-(Summary: " . addslashes($summary) . ") Tj
-ET
-endstream
-endobj
-xref
-0 6
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000244 00000 n 
-0000000318 00000 n 
-trailer
-<< /Size 6 /Root 1 0 R >>
-startxref
-700
-%%EOF";
+        $text1 = "Candidate: " . $cleanCandidate . " - " . $docLabel;
+        $text2 = "Official JobSync Verified Profile Document";
+        $text3 = "Education: " . $edu . " | Experience: " . $exp;
+        $text4 = "Skills: " . $skills;
+        $text5 = "Summary: " . $summary;
+
+        $stream = "BT\n/F1 16 Tf\n40 730 Td\n(" . addslashes($text1) . ") Tj\n/F1 11 Tf\n0 -25 Td\n(" . addslashes($text2) . ") Tj\n0 -25 Td\n(" . addslashes($text3) . ") Tj\n0 -25 Td\n(" . addslashes($text4) . ") Tj\n0 -25 Td\n(" . addslashes($text5) . ") Tj\nET";
+        $streamLen = strlen($stream);
+
+        $pdfContent = "%PDF-1.4\n"
+            . "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+            . "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+            . "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n"
+            . "4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n"
+            . "5 0 obj\n<< /Length {$streamLen} >>\nstream\n"
+            . $stream . "\nendstream\nendobj\n"
+            . "xref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000244 00000 n \n0000000318 00000 n \n"
+            . "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n700\n%%EOF";
 
         return response($pdfContent, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="' . $cleanFilename . '"',
             'Cache-Control' => 'no-cache, private',
         ]);
     }
