@@ -1,101 +1,56 @@
-# KBSystem — Setup Guide
+KBSystem — Setup Guide (WSL)
 
-This project runs entirely in Docker via Laravel Sail, so you don't need PHP, Composer, MySQL, or Node installed on your machine — just Docker.
+Runs entirely in Docker via Laravel Sail. No local PHP, Composer, Node, or MySQL required.
 
-## Requirements
+Requirements:
+- Docker Desktop on Windows (with WSL 2 integration enabled in Settings > Resources > WSL integration)
+- Git (installed inside WSL)
 
-- Docker Desktop ([download here](https://www.docker.com/products/docker-desktop/)) — open it once after installing so the daemon is running
-- Git
+Setup Steps (run all commands in your WSL terminal):
 
-## First-time setup
+1. Navigate to WSL, then to your projects folder, clone the repo & copy environment file
 
-```bash
-# 1. Clone the repo
+cd projects
 git clone https://github.com/mungaimark103/knowledge-based-jobs.git
 cd knowledge-based-jobs
-
-# 2. Copy the environment file
 cp .env.example .env
 
-# 3. Install PHP dependencies (via a temporary Docker container, no local PHP needed)
-docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -v "$(pwd)":/var/www/html \
-    -w /var/www/html \
-    laravelsail/php85-composer:latest \
-    composer install --ignore-platform-reqs
+2. Install PHP dependencies via Docker (Docker Desktop needs to be running before you run this command)
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/app" composer:latest composer install --ignore-platform-reqs
 
-# 4. Start the containers
+3. Start Sail containers
 ./vendor/bin/sail up -d
 
-# 5. Generate the app key
+4. Setup database & build assets
 ./vendor/bin/sail artisan key:generate
-
-# 6. Run migrations and seed sample data
 ./vendor/bin/sail artisan migrate --seed
-
-# 7. Install and build frontend assets
 ./vendor/bin/sail npm install
 ./vendor/bin/sail npm run build
-```
 
-Link http://localhost
+Access & Login:
 
-## Daily development
+Web Application: http://localhost
+Super Admin: admin@job-sync.com | password
+Candidate: client@job-sync.com | password
+Employer: safaricom@employer.com | password
 
-Two things need to run alongside each other:
+phpMyAdmin (Database GUI): http://localhost:8080
+Username: sail
+Password: password
 
-```bash
-# Terminal 1 — PHP, MySQL (runs in background)
+Daily Workflow:
+
+Terminal 1 — Start app in background:
 ./vendor/bin/sail up -d
 
-# Terminal 2 — Vite, for CSS/JS hot-reloading while you edit
+Terminal 2 — Vite hot reload (for frontend edits):
 ./vendor/bin/sail npm run dev
-```
 
-Stop everything when done for the day:
-
-```bash
+Stop containers when done:
 ./vendor/bin/sail down
-```
 
-## Useful commands
+Common Issues:
 
-| Task | Command |
-|---|---|
-| Run artisan commands | `./vendor/bin/sail artisan <command>` |
-| Run a migration | `./vendor/bin/sail artisan migrate` |
-| Re-seed the database | `./vendor/bin/sail artisan db:seed` |
-| Open a MySQL shell | `./vendor/bin/sail mysql` |
-| Run tests | `./vendor/bin/sail artisan test` |
-| View logs | `./vendor/bin/sail logs` |
-
-Tip: add this alias to your shell config so you can type `sail` instead of `./vendor/bin/sail`:
-
-```bash
-echo "alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'" >> ~/.zshrc
-source ~/.zshrc
-```
-
-## Ports
-
-- App: **http://localhost:8080** (set via `APP_PORT` in `.env`)
-- MySQL: `localhost:3306` (if you want to connect with a GUI tool like TablePlus)
-- Vite dev server: `localhost:5173` (only used internally by the browser for hot-reload, don't visit directly)
-
-## Troubleshooting
-
-**"Connection refused" in the browser**
-Run `docker ps` — if no containers are listed, run `./vendor/bin/sail up -d`. If Docker Desktop itself isn't open, open it first.
-
-**"SQLSTATE... getaddrinfo for mysql failed"**
-This means something tried to connect to the database outside of Sail's Docker network. Make sure you're running commands through `sail` (`sail artisan ...`, not plain `php artisan ...`), and that containers are actually running (`docker ps`).
-
-**Port already in use**
-If port 8080 or 3306 is taken by something else on your machine, change `APP_PORT` or `FORWARD_DB_PORT` in `.env`, then run `sail down && sail up -d`.
-
-## Project structure notes
-
-- **Auth:** Laravel's built-in authentication, no Teams/Jetstream multi-tenancy — access control is via a `role` column on `users` (`agency`, `employer`, `candidate`)
-- **Frontend:** Vue via Inertia.js (server-driven routing, not Vue Router) + Tailwind CSS
-- **Matching logic:** see `KNOWLEDGE_BASE_DESIGN.md` for how the rule-based matching engine is structured
+- Docker command not found in WSL: Open Docker Desktop Settings > Resources > WSL integration and toggle ON your WSL distro (e.g. Ubuntu).
+- Connection refused: Make sure Docker Desktop is open and running on Windows.
+- Port 8080 in use: Change APP_PORT in .env, then run ./vendor/bin/sail down && ./vendor/bin/sail up -d

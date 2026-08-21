@@ -294,7 +294,7 @@ class AgencyDashboardController extends Controller
             'explanation_template' => 'required|string',
         ]);
 
-        MatchingRule::create([
+        $rule = MatchingRule::create([
             'name' => $validated['name'],
             'field' => $validated['field'],
             'operator' => $validated['operator'],
@@ -304,7 +304,34 @@ class AgencyDashboardController extends Controller
             'active' => true,
         ]);
 
+        AuditLogger::log('RULE_CREATE', "Global IF-THEN Rule '{$rule->name}' was created.");
+
         return redirect()->back()->with('success', "Global IF-THEN Rule '{$validated['name']}' created successfully.");
+    }
+
+    public function updateRule(Request $request, int $id): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user || $user->role !== 'agency_admin') {
+            return redirect()->route('dashboard');
+        }
+
+        $rule = MatchingRule::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'field' => 'required|string',
+            'operator' => 'required|string|in:>=,<=,==,contains',
+            'value' => 'required|string',
+            'action' => 'required|string|in:flag,bonus,exclude',
+            'explanation_template' => 'required|string',
+        ]);
+
+        $rule->update($validated);
+
+        AuditLogger::log('RULE_UPDATE', "Global IF-THEN Rule '{$rule->name}' (ID: {$rule->id}) was updated.");
+
+        return redirect()->back()->with('success', "Global IF-THEN Rule '{$rule->name}' updated successfully.");
     }
 
     public function toggleRule(Request $request, int $id): RedirectResponse
@@ -320,6 +347,22 @@ class AgencyDashboardController extends Controller
         $statusStr = $rule->active ? 'activated' : 'deactivated';
         AuditLogger::log('RULE_UPDATE', "Global IF-THEN Rule '{$rule->name}' was {$statusStr}.");
         return redirect()->back()->with('success', "Global IF-THEN Rule '{$rule->name}' has been {$statusStr}.");
+    }
+
+    public function destroyRule(Request $request, int $id): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user || $user->role !== 'agency_admin') {
+            return redirect()->route('dashboard');
+        }
+
+        $rule = MatchingRule::findOrFail($id);
+        $ruleName = $rule->name;
+        $rule->delete();
+
+        AuditLogger::log('RULE_DELETE', "Global IF-THEN Rule '{$ruleName}' (ID: {$id}) was deleted.");
+
+        return redirect()->back()->with('success', "Global IF-THEN Rule '{$ruleName}' was deleted successfully.");
     }
 
     public function auditLogs(Request $request): Response|RedirectResponse

@@ -18,6 +18,7 @@ import {
     Filter,
     Menu,
     Trash2,
+    Pencil,
 } from '@lucide/vue';
 import { ref, computed } from 'vue';
 
@@ -197,6 +198,48 @@ function submitCreateRule() {
             newRuleForm.reset();
         },
     });
+}
+
+// Edit Global IF-THEN Rule Form
+const showEditRuleModal = ref(false);
+const editingRuleId = ref<number | null>(null);
+const editRuleForm = useForm({
+    name: '',
+    field: 'years_experience',
+    operator: '>=',
+    value: '',
+    action: 'flag',
+    explanation_template: '',
+});
+
+function openEditRuleModal(rule: Rule) {
+    editingRuleId.value = rule.id;
+    editRuleForm.name = rule.name;
+    editRuleForm.field = rule.field;
+    editRuleForm.operator = rule.operator;
+    editRuleForm.value = rule.value;
+    editRuleForm.action = rule.action;
+    editRuleForm.explanation_template = rule.explanation_template;
+    showEditRuleModal.value = true;
+}
+
+function submitUpdateRule() {
+    if (!editingRuleId.value) return;
+    editRuleForm.put(`/admin/rules/${editingRuleId.value}`, {
+        onSuccess: () => {
+            showEditRuleModal.value = false;
+            editingRuleId.value = null;
+            editRuleForm.reset();
+        },
+    });
+}
+
+function deleteRule(rule: Rule) {
+    if (confirm(`Are you sure you want to delete the rule "${rule.name}"? This action cannot be undone.`)) {
+        router.delete(`/admin/rules/${rule.id}`, {
+            preserveScroll: true,
+        });
+    }
 }
 
 // Criteria Weight Form
@@ -1193,29 +1236,45 @@ function deleteJobByAdmin(id: number, title: string) {
                                     >
                                 </p>
                             </div>
-                            <Link
-                                :href="`/admin/rules/${r.id}/toggle`"
-                                method="patch"
-                                as="button"
-                                preserve-scroll
-                                :class="[
-                                    'inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold transition',
-                                    r.active
-                                        ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400'
-                                        : 'bg-slate-200 text-slate-500 hover:bg-slate-300 dark:bg-slate-800',
-                                ]"
-                            >
-                                <Check
-                                    v-if="r.active"
-                                    class="h-3.5 w-3.5 text-emerald-500"
-                                />
-                                <X v-else class="h-3.5 w-3.5" />
-                                {{
-                                    r.active
-                                        ? 'Active Rule'
-                                        : 'Inactive (Enable)'
-                                }}
-                            </Link>
+                            <div class="flex items-center gap-2">
+                                <Link
+                                    :href="`/admin/rules/${r.id}/toggle`"
+                                    method="patch"
+                                    as="button"
+                                    preserve-scroll
+                                    :class="[
+                                        'inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold transition',
+                                        r.active
+                                            ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400'
+                                            : 'bg-slate-200 text-slate-500 hover:bg-slate-300 dark:bg-slate-800',
+                                    ]"
+                                >
+                                    <Check
+                                        v-if="r.active"
+                                        class="h-3.5 w-3.5 text-emerald-500"
+                                    />
+                                    <X v-else class="h-3.5 w-3.5" />
+                                    {{
+                                        r.active
+                                            ? 'Active'
+                                            : 'Inactive'
+                                    }}
+                                </Link>
+                                <button
+                                    @click="openEditRuleModal(r)"
+                                    title="Edit Rule"
+                                    class="inline-flex items-center justify-center rounded-xl bg-indigo-50 p-2 text-indigo-600 transition hover:bg-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-400 dark:hover:bg-indigo-900/50"
+                                >
+                                    <Pencil class="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                    @click="deleteRule(r)"
+                                    title="Delete Rule"
+                                    class="inline-flex items-center justify-center rounded-xl bg-rose-50 p-2 text-rose-600 transition hover:bg-rose-100 dark:bg-rose-950/50 dark:text-rose-400 dark:hover:bg-rose-900/50"
+                                >
+                                    <Trash2 class="h-3.5 w-3.5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1373,6 +1432,162 @@ function deleteJobByAdmin(id: number, title: string) {
                             class="rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow-sm hover:bg-indigo-700"
                         >
                             Create Global Rule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Global IF-THEN Rule Modal -->
+        <div
+            v-if="showEditRuleModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+        >
+            <div
+                class="w-full max-w-lg space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+            >
+                <div
+                    class="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800"
+                >
+                    <h3
+                        class="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-slate-100"
+                    >
+                        <Pencil class="h-5 w-5 text-indigo-500" /> Edit Global IF-THEN Rule
+                    </h3>
+                    <button
+                        @click="showEditRuleModal = false"
+                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    >
+                        <X class="h-5 w-5" />
+                    </button>
+                </div>
+
+                <form
+                    @submit.prevent="submitUpdateRule"
+                    class="space-y-4 text-xs"
+                >
+                    <div>
+                        <label
+                            class="mb-1 block font-semibold text-slate-700 dark:text-slate-300"
+                            >Rule Name</label
+                        >
+                        <input
+                            v-model="editRuleForm.name"
+                            required
+                            type="text"
+                            placeholder="e.g. Mandatory Security Clearance"
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs dark:border-slate-800 dark:bg-slate-950"
+                        />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="mb-1 block font-semibold text-slate-700 dark:text-slate-300"
+                                >Candidate Attribute Field</label
+                            >
+                            <select
+                                v-model="editRuleForm.field"
+                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold dark:border-slate-800 dark:bg-slate-950"
+                            >
+                                <option value="years_experience">
+                                    years_experience
+                                </option>
+                                <option value="reliability_score">
+                                    reliability_score
+                                </option>
+                                <option value="education_level">
+                                    education_level
+                                </option>
+                                <option value="is_verified">is_verified</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                class="mb-1 block font-semibold text-slate-700 dark:text-slate-300"
+                                >Operator</label
+                            >
+                            <select
+                                v-model="editRuleForm.operator"
+                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs font-semibold dark:border-slate-800 dark:bg-slate-950"
+                            >
+                                <option value=">=">
+                                    &gt;= (Greater than or Equal)
+                                </option>
+                                <option value="<=">
+                                    &lt;= (Less than or Equal)
+                                </option>
+                                <option value="==">== (Exact Equals)</option>
+                                <option value="contains">
+                                    contains (In List)
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="mb-1 block font-semibold text-slate-700 dark:text-slate-300"
+                                >Target Value</label
+                            >
+                            <input
+                                v-model="editRuleForm.value"
+                                required
+                                type="text"
+                                placeholder="e.g. 5 or 85 or Master's Degree"
+                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs dark:border-slate-800 dark:bg-slate-950"
+                            />
+                        </div>
+                        <div>
+                            <label
+                                class="mb-1 block font-semibold text-slate-700 dark:text-slate-300"
+                                >Rule Action</label
+                            >
+                            <select
+                                v-model="editRuleForm.action"
+                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase dark:border-slate-800 dark:bg-slate-950"
+                            >
+                                <option value="flag">FLAG (Audit Badge)</option>
+                                <option value="bonus">BONUS (+ Points)</option>
+                                <option value="exclude">
+                                    EXCLUDE (Knockout)
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label
+                            class="mb-1 block font-semibold text-slate-700 dark:text-slate-300"
+                            >Explanation Template (Use :value for dynamic
+                            replacement)</label
+                        >
+                        <input
+                            v-model="editRuleForm.explanation_template"
+                            required
+                            type="text"
+                            placeholder="e.g. Verified candidate possesses at least :value years experience"
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 font-mono text-xs dark:border-slate-800 dark:bg-slate-950"
+                        />
+                    </div>
+
+                    <div
+                        class="flex justify-end space-x-3 border-t border-slate-100 pt-3 dark:border-slate-800"
+                    >
+                        <button
+                            type="button"
+                            @click="showEditRuleModal = false"
+                            class="rounded-xl bg-slate-100 px-4 py-2 font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            :disabled="editRuleForm.processing"
+                            class="rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow-sm hover:bg-indigo-700"
+                        >
+                            Save Changes
                         </button>
                     </div>
                 </form>

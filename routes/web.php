@@ -48,7 +48,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/admin/staff/provision', [AgencyDashboardController::class, 'provisionStaff'])->name('admin.staff.provision');
     Route::get('/admin/audit/export', [AgencyDashboardController::class, 'exportAuditCsv'])->name('admin.audit.export');
     Route::post('/admin/rules', [AgencyDashboardController::class, 'storeRule'])->name('admin.rules.store');
+    Route::put('/admin/rules/{id}', [AgencyDashboardController::class, 'updateRule'])->name('admin.rules.update');
     Route::patch('/admin/rules/{id}/toggle', [AgencyDashboardController::class, 'toggleRule'])->name('admin.rules.toggle');
+    Route::delete('/admin/rules/{id}', [AgencyDashboardController::class, 'destroyRule'])->name('admin.rules.destroy');
 });
 
 // Google OAuth Single Sign-On Routes
